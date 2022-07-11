@@ -1,15 +1,13 @@
+import os
 import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pathlib import Path
-
 import pandas.errors
-from dotenv import load_dotenv
-import os
-
 import pytz
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
 # Use load_env to trace the path of .env:
