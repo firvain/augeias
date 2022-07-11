@@ -2,7 +2,7 @@
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-from Modules import Addvantage
+from Modules import Addvantage, Rest
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -15,5 +15,6 @@ if __name__ == '__main__':
     # TimeSeriesAnalysis.check_seasonality('./Data/weather_influx_tables/', 'accu_diffs.csv')
     # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
-    Addvantage.addvantage("Data/addvantage", "", save_csv=True,
-                          csv_name="addvantage.csv", save_to_db=False, db_mode='replace', plot=True)
+    # Addvantage.addvantage("Data/addvantage", "", save_csv=True,
+    #                       csv_name="addvantage.csv", save_to_db=False, db_mode='replace', plot=True)
+    Rest.test()
