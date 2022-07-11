@@ -16,4 +16,4 @@ if __name__ == '__main__':
     # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
     Addvantage.addvantage("Data/weather_influx_tables", "values-addvantage.csv", save_csv=True,
-                          csv_name="addvantage.csv", save_to_db=True, db_mode='replace', plot=True)
+                          csv_name="addvantage.csv", save_to_db=False, db_mode='replace', plot=True)

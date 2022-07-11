@@ -19,14 +19,13 @@ def addvantage(data_path, file, save_csv=False, csv_name="", plot=False, save_to
     df["WIND SPEED 100 Hz (m/s)"].replace(to_replace=r'\*', value=np.NAN, regex=True, inplace=True)
     df["Precipitation (mm)"].replace(to_replace=r'\*', value=np.NAN, regex=True, inplace=True)
     df["Pyranometer (W/m²)"].replace(to_replace=r'\*', value=0.0, regex=True, inplace=True)
-    # print(df.head())
+    
     df = df[df.columns.intersection(final_table_columns)]
     df['Time'] = pd.to_datetime(df['Time']).dt.time
-    # df.to_csv('test.csv')
 
     # df['timestamp'] = df.apply(lambda r: pd.to_datetime.combine(r['Date'], r['Time']), 1)
     df['timestamp'] = pd.to_datetime(df['Date'].astype(str) + df['Time'].astype(str), format='%Y-%m-%d%H:%M:%S')
-    # print(df.dtypes)
+
     my_timezone = pytz.timezone('Europe/Athens')
     df['timestamp'] = df['timestamp'].dt.tz_localize(my_timezone, ambiguous='infer')
 
