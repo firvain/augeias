@@ -1,25 +1,44 @@
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pathlib import Path
 
+import pandas.errors
+from dotenv import load_dotenv
+import os
+
 import pytz
 from sqlalchemy import create_engine
+
+# Use load_env to trace the path of .env:
+load_dotenv('.env')
+db_url = os.environ.get("POSTGRESQL_URL")
+
+
+def read_from_csv(file, sep):
+    try:
+        df = pd.read_csv(file, parse_dates=['Date'], encoding="cp1253", sep=sep)
+        return df
+    except pandas.errors.ParserError:
+        sys.exit("Parsing file error")
 
 
 def addvantage(data_path, file, save_csv=False, csv_name="", plot=False, save_to_db=True, db_mode='replace',
                sep=";"):
     data_folder = Path(data_path)
-    file_ = data_folder / file
-    df = pd.read_csv(file_, parse_dates=['Date'], encoding="cp1253", sep=sep)
-
+    if file:
+        df = read_from_csv(data_folder / file, sep)
+    else:
+        sys.exit("No file")
     final_table_columns = ["Date", "Time", "AIR TEMPERATURE (°C)", "WIND SPEED 100 Hz (m/s)", "Precipitation (mm)",
                            "Pyranometer (W/m²)"]
     df["AIR TEMPERATURE (°C)"].replace(to_replace=r'\*', value=np.NAN, regex=True, inplace=True)
     df["WIND SPEED 100 Hz (m/s)"].replace(to_replace=r'\*', value=np.NAN, regex=True, inplace=True)
     df["Precipitation (mm)"].replace(to_replace=r'\*', value=np.NAN, regex=True, inplace=True)
     df["Pyranometer (W/m²)"].replace(to_replace=r'\*', value=0.0, regex=True, inplace=True)
-    
+
     df = df[df.columns.intersection(final_table_columns)]
     df['Time'] = pd.to_datetime(df['Time']).dt.time
 
@@ -35,7 +54,6 @@ def addvantage(data_path, file, save_csv=False, csv_name="", plot=False, save_to
     out_df = out_df.astype(np.float64)
 
     if save_to_db:
-        db_url = 'postgresql://nmfzxjvosmhqxs:614adee59cc7aa63f4d128e1ed2c493be7faae3233099962fb189da037340ae9@ec2-34-242-8-97.eu-west-1.compute.amazonaws.com:5432/dfdfjui84brdcr'
         engine = create_engine(db_url)
         out_df.to_sql('addvantage', engine, if_exists=db_mode)
     if save_csv:
