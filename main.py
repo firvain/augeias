@@ -15,7 +15,8 @@ if __name__ == '__main__':
     # TimeSeriesAnalysis.check_seasonality('./Data/weather_influx_tables/', 'accu_diffs.csv')
     # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
-    Addvantage.addvantage("Data/addvantage", "values-addvantage.csv", save_csv=True,
-                          csv_name="addvantage.csv", save_to_db=True, db_mode='replace', plot=True)
+    # Addvantage.addvantage("Data/addvantage", "values-addvantage.csv", save_csv=True,
+    #                       csv_name="addvantage.csv", save_to_db=True, db_mode='replace', plot=True)
     new_addvantage_data = ServerCalls.get_new_addvantage_data()
+    new_addvantage_data.to_csv('test3.csv')
     # Rest.test()

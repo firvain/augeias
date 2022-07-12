@@ -1,18 +1,22 @@
 import json
 from datetime import datetime, timedelta
 
+import pytz
 import requests
 import xmltodict
 from pandas import DataFrame, to_datetime
 
 base_url = "http://scient.static.otenet.gr:82/addUPI?"
-hours = 1
+hours = 24
 slots = int(hours * 60 / 5)
 
 # get datetime
+# current_datetime = datetime.now()
 current_datetime = to_datetime('today').normalize()
 current_minus = current_datetime - timedelta(hours=hours)
 before_datetime = current_minus.replace(microsecond=0)
+
+my_timezone = pytz.timezone('Europe/Athens')
 
 
 def get_addvantage_session_id():
@@ -51,7 +55,7 @@ def get_addvantage_data(session_id, sensor_id):
               "Radio Error Rate (Long-Term)", "Radio Error Rate (Short-Term)", "Temperature Internal",
               "Charging Regulator", "Battery Voltage"]
 
-    for k in range(14):
+    for k in range(15):
 
         if "v" in json_dict["response"]["node"][k]:
             if isinstance(json_dict["response"]["node"][k]["v"], list):
@@ -71,7 +75,7 @@ def get_addvantage_data(session_id, sensor_id):
         else:
             measurements[titles[k]] = json_dict["response"]["node"][k]["error"]["@msg"]
 
-    for k in range(14, 24):
+    for k in range(15, 24):
         if "v" in json_dict["response"]["node"][k]:
             if isinstance(json_dict["response"]["node"][k]["v"], list):
                 maxN = len(json_dict["response"]["node"][k]["v"])
@@ -91,7 +95,7 @@ def get_addvantage_data(session_id, sensor_id):
 
     json_WWTP["measurements"] = measurements
     json_WWTP["diagnostics"] = diagnostics
-
+    print(json_WWTP["measurements"])
     json_data = json.dumps(json_WWTP)
 
     dicti = json.loads(json_data)
@@ -102,6 +106,7 @@ def get_addvantage_data(session_id, sensor_id):
         for idx, item in enumerate(dicti['measurements'][i]):
             if idx == 0:
                 item['time'] = datetime.strptime(item["time"], "%Y%m%dT%H:%M:%S")
+                item['time'] = my_timezone.localize(item['time'])
 
             else:
 
@@ -111,8 +116,8 @@ def get_addvantage_data(session_id, sensor_id):
 
             qa[i].append(item['value'])
 
-    qa['time'] = list(set(qa['time']))
-
+    qa['time'] = sorted(set(qa['time']))
+    print(qa)
     df = DataFrame.from_dict(qa)
 
     df["time"] = to_datetime(df['time'], format='%Y-%m-%dT%H:%M:%S')
