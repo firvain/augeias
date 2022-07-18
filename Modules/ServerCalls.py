@@ -1,10 +1,18 @@
 import json
+import os
 from datetime import datetime, timedelta
 
 import pytz
 import requests
 import xmltodict
-from pandas import DataFrame, to_datetime
+from dotenv import load_dotenv
+from pandas import DataFrame, to_datetime, set_option
+import pymongo
+from bson.json_util import dumps
+
+# Use load_env to trace the path of .env:
+load_dotenv('.env')
+mongo_url = os.environ.get("MONGO_DB")
 
 base_url = "http://scient.static.otenet.gr:82/addUPI?"
 hours = 24
