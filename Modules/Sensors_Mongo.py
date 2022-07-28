@@ -7,13 +7,15 @@ from pandas import DataFrame
 import pymongo
 
 # Use load_env to trace the path of .env:
+from pandas import json_normalize
+
 load_dotenv('.env')
 mongo_url = os.environ.get("MONGO_DB")
 
 
-def get_mongo_data(collection, key_list=[], past_hours=24):
+def get_mongo_data(collection, key_list=[], key_list2=[], past_hours=24):
     print(collection)
-    search_key = key_list[0]
+
     print(mongo_url)
     client = pymongo.MongoClient(mongo_url)
 
@@ -27,13 +29,16 @@ def get_mongo_data(collection, key_list=[], past_hours=24):
             js = json.loads(x.get('payload')['objectJSON'])
             # print(js.keys())
             js["timestamp"] = x.get("arrived_at")
+            # print(js)
             for key in js.keys():
                 if not js.get(key) is None:
                     json_data_list.append(js)
         except (KeyError, json.JSONDecodeError, TypeError):
             # print(e)
             pass
-    df = DataFrame(json_data_list)
+
+    df = DataFrame(json_normalize(json_data_list, max_level=1))
+
     if not df.empty:
         df.set_index("timestamp", inplace=True)
 
