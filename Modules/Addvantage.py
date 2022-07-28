@@ -16,6 +16,8 @@ from pandas import DataFrame, to_datetime
 from sqlalchemy import create_engine
 
 # Use load_env to trace the path of .env:
+from Utils.Pandas_utils import save_pandas_to_csv
+
 load_dotenv('.env')
 db_url = os.environ.get("POSTGRESQL_URL")
 base_url = os.environ.get("ADDVANTAGE_URL")
@@ -60,8 +62,7 @@ def addvantage_from_csv(in_data_path, file, save_csv=False, out_data_path="", cs
                         sep=";"):
     in_data_folder = Path(in_data_path)
     in_data_folder.mkdir(parents=True, exist_ok=True)
-    out_data_folder = Path(out_data_path)
-    out_data_folder.mkdir(parents=True, exist_ok=True)
+
     if file:
         out_df = read_from_csv(in_data_folder / file, sep)
     else:
@@ -73,13 +74,15 @@ def addvantage_from_csv(in_data_path, file, save_csv=False, out_data_path="", cs
             engine = create_engine(db_url)
             out_df.to_sql('addvantage', engine, if_exists=db_mode)
         except ValueError as e:
-            sys.exit("e")
+            sys.exit(e)
     if save_csv:
-        file_ = out_data_folder / csv_name
-        out_df.to_csv(file_)
+        save_pandas_to_csv(out_df, out_path=out_data_path, drop_nan=True, csv_name=csv_name)
+
     if plot:
         data_folder = Path(out_data_path)
         data_folder.mkdir(parents=True, exist_ok=True)
+        out_data_folder = Path(out_data_path)
+        out_data_folder.mkdir(parents=True, exist_ok=True)
         selected_rows = out_df[~out_df.isnull().any(axis=1)]
         fig, a = plt.subplots(2, 2, figsize=(12, 6), tight_layout=True)
         selected_rows.plot(ax=a, subplots=True, rot=90)
@@ -204,8 +207,6 @@ def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name=""):
     print(data.columns)
     print(data.describe())
     if save_csv:
-        data_folder = Path(out_data_path)
-        data_folder.mkdir(parents=True, exist_ok=True)
-        data.dropna(how='all').to_csv(data_folder / csv_name)
+        save_pandas_to_csv(data, out_path=out_data_path, drop_nan=True, csv_name=csv_name)
     else:
         return data

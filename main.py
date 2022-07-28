@@ -3,15 +3,11 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import numpy as np
-
 from pandas import notnull, pivot_table, to_numeric
-from pathlib import Path
+
 from Modules import Addvantage, Sensors_Mongo
 # Press the green button in the gutter to run the script.
-from Modules.Utils import rename_pandas_columns
-
-sensors_folder = Path('Data/Sensors')
-sensors_folder.mkdir(parents=True, exist_ok=True)
+from Utils.Pandas_utils import rename_pandas_columns, save_pandas_to_csv
 
 if __name__ == '__main__':
     # Visualize.vis_data('./Data/weather_influx_tables/', 'weather.csv', 'weather.png', 'time',
@@ -22,6 +18,7 @@ if __name__ == '__main__':
     # Visualize.compare_dfs('./Data/weather_influx_tables/', 'accu_diffs.csv', 'wunder_diffs.csv', 'average_accuracy')
     # TimeSeriesAnalysis.check_seasonality('./Data/weather_influx_tables/', 'accu_diffs.csv')
     # See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    
     # Addvantage -> ok
     Addvantage.addvantage_from_csv("Data/addvantage", "values-addvantage.csv", save_csv=True,
                                    out_data_path="Data/addvantage/result",
@@ -37,7 +34,7 @@ if __name__ == '__main__':
                                       past_hours=24 * 100)
     print(m1.columns)
     print(m1.describe())
-    m1.dropna(how='all').to_csv(sensors_folder / "Teros_12.csv")
+    save_pandas_to_csv(m1, out_path="Data/Sensors", drop_nan=True, csv_name="Teros_12.csv")
 
     # Triscan -> ok
     m2 = Sensors_Mongo.get_mongo_data('1ef55f2a354bd39cca6edb637aec2e0ea55bea09',
@@ -47,8 +44,7 @@ if __name__ == '__main__':
                                       past_hours=24 * 100)
     print(m2.columns)
     print(m2.describe())
-
-    m1.dropna(how='all').to_csv(sensors_folder / "Triscan.csv")
+    save_pandas_to_csv(m2, out_path="Data/Sensors", drop_nan=True, csv_name="Triscan.csv")
 
     # Scan_chlori
     m3 = Sensors_Mongo.get_mongo_data('218603913b6398d27b0b1612e7ee2e2ee3d036a1',
@@ -58,7 +54,7 @@ if __name__ == '__main__':
     print(m3.columns)
     print(m3.describe())
     m3 = rename_pandas_columns(m3, {'analogInput.2': "analogInput", 'temperatureSensor.1': 'temperatureSensor'})
-    m3.dropna(how='all').to_csv(sensors_folder / "Scan_chlori.csv")
+    save_pandas_to_csv(m3, out_path="Data/Sensors", drop_nan=True, csv_name="Scan_chlori.csv")
 
     # NDVI -> ok
     m4 = Sensors_Mongo.get_mongo_data('323c14d3d8ad3e919ce9699403cbc0ca2ead8c5b',
@@ -67,8 +63,8 @@ if __name__ == '__main__':
                                       past_hours=24 * 100)
     print(m4.columns)
     print(m4.describe())
-    m4.dropna(how='all').to_csv(sensors_folder / "NDVI.csv")
 
+    save_pandas_to_csv(m4, out_path="Data/Sensors", drop_nan=True, csv_name="NDVI.csv")
     # Proteus_Aquatroll_infinite
     m5 = Sensors_Mongo.get_mongo_data('59a85c7da55bf1bf6e784675c060a2e71ee2373a',
                                       ['channel', 'sign', 'value'],
@@ -83,8 +79,7 @@ if __name__ == '__main__':
     m5 = rename_pandas_columns(m5, {'01': "pH", '02': 'ORP', "03": "total_coli", "04": "BOD", "05": "COD", "06": "NO3",
                                     "07": "temperature"})
     print(m5.describe())
-
-    m5.dropna(how='all').to_csv(sensors_folder / "Proteus_Aquatroll_infinite.csv")
+    save_pandas_to_csv(m5, out_path="Data/Sensors", drop_nan=True, csv_name="Proteus_Aquatroll_infinite.csv")
 
     # delta_Ohm_chlori
     # m6 = Sensors_Mongo.get_mongo_data('5a34df56477c024587592a8e1fe3a768f1929b10', 'temperatureSensor',
@@ -101,6 +96,7 @@ if __name__ == '__main__':
                                       past_hours=24 * 100)
     print(m7.columns)
     print(m7.describe())
-    m7.dropna(how='all').to_csv(sensors_folder / "ATMOS.csv")
+
+    save_pandas_to_csv(m7, out_path="Data/Sensors", drop_nan=True, csv_name="ATMOS.csv")
 
     # # Rest.test()
