@@ -16,12 +16,12 @@ from pandas import DataFrame, to_datetime
 from sqlalchemy import create_engine
 
 # Use load_env to trace the path of .env:
-from Utils.Pandas_utils import save_pandas_to_csv
+from Utils.Pandas_utils import save_pandas_to_csv, save_pandas_to_json
 
 load_dotenv('.env')
 db_url = os.environ.get("POSTGRESQL_URL")
 base_url = os.environ.get("ADDVANTAGE_URL")
-hours = 24
+hours = 24 * 1
 slots = int(hours * 60 / 5)
 current_datetime = to_datetime('today').normalize()
 current_minus = current_datetime - timedelta(hours=hours)
@@ -168,12 +168,12 @@ def get_addvantage_data_from_server(session_id, sensor_id):
 
     json_WWTP["measurements"] = measurements
     json_WWTP["diagnostics"] = diagnostics
-    print(json_WWTP["measurements"])
+    # print(json_WWTP["measurements"])
     json_data = json.dumps(json_WWTP)
 
     dicti = json.loads(json_data)
 
-    qa = {'time': []}
+    qa = {'timestamp': []}
     for i in dicti['measurements']:
         qa[i] = []
         for idx, item in enumerate(dicti['measurements'][i]):
@@ -185,28 +185,29 @@ def get_addvantage_data_from_server(session_id, sensor_id):
 
                 item["time"] = dicti['measurements'][i][idx - 1]["time"] + timedelta(seconds=int(item["time"][1:]))
 
-            qa['time'].append(item['time'].isoformat())
+            qa['timestamp'].append(item['time'].isoformat())
 
             qa[i].append(item['value'])
 
-    qa['time'] = sorted(set(qa['time']))
-    print(qa)
+    qa['timestamp'] = sorted(set(qa['timestamp']))
+    # print(qa)
     df = DataFrame.from_dict(qa)
 
-    df["time"] = to_datetime(df['time'], format='%Y-%m-%dT%H:%M:%S')
-    df.set_index('time', inplace=True)
+    df["timestamp"] = to_datetime(df['timestamp'], format='%Y-%m-%dT%H:%M:%S')
+    df.set_index('timestamp', inplace=True)
     df.sort_index(inplace=True)
-    print(df.describe())
-    return df
+    # print(df.columns.tolist())
+    return df.apply(pd.to_numeric)
 
 
-def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name=""):
+def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name="", save_json=False, json_name="", aggreg={}):
     session_id = get_addvantage_session_id()
     data = get_addvantage_data_from_server(session_id, sensor_id=7608)
     logout_addvantage(session_id)
-    print(data.columns)
-    print(data.describe())
+
     if save_csv:
-        save_pandas_to_csv(data, out_path=out_data_path, drop_nan=True, csv_name=csv_name)
-    else:
-        return data
+        save_pandas_to_csv(data, out_path=out_data_path, drop_nan=True, csv_name=csv_name, aggreg=aggreg)
+    if save_json:
+        save_pandas_to_json(data, out_path=out_data_path, drop_nan=True, json_name=json_name, aggreg=aggreg)
+
+    return data
