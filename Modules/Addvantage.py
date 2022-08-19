@@ -13,13 +13,13 @@ import requests
 import xmltodict
 from dotenv import load_dotenv
 from pandas import DataFrame, to_datetime
-from sqlalchemy import create_engine
 
+from Utils.Database import save_df_to_database, upsert_df
 # Use load_env to trace the path of .env:
-from Utils.Pandas_utils import save_pandas_to_csv, save_pandas_to_json
+from Utils.Pandas_utils import resample_dataset, save_pandas_to_csv, save_pandas_to_json
 
 load_dotenv('.env')
-db_url = os.environ.get("POSTGRESQL_URL")
+
 base_url = os.environ.get("ADDVANTAGE_URL")
 hours = 24 * 1
 slots = int(hours * 60 / 5)
@@ -69,12 +69,7 @@ def addvantage_from_csv(in_data_path, file, save_csv=False, out_data_path="", cs
         sys.exit("No file")
 
     if save_to_db:
-        try:
-            print("saving to db")
-            engine = create_engine(db_url)
-            out_df.to_sql('addvantage', engine, if_exists=db_mode)
-        except ValueError as e:
-            sys.exit(e)
+        save_df_to_database(df=out_df, table='addvantage', db_mode=db_mode)
     if save_csv:
         save_pandas_to_csv(out_df, out_path=out_data_path, drop_nan=True, csv_name=csv_name)
 
@@ -200,14 +195,23 @@ def get_addvantage_data_from_server(session_id, sensor_id):
     return df.apply(pd.to_numeric)
 
 
-def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name="", save_json=False, json_name="", aggreg={}):
+def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name="", save_json=False, json_name="",
+                            drop_nan=False, aggreg={},
+                            save_to_db=True):
     session_id = get_addvantage_session_id()
     data = get_addvantage_data_from_server(session_id, sensor_id=7608)
     logout_addvantage(session_id)
-
+    if drop_nan:
+        data.dropna(how='all', inplace=True)
+    df_out = resample_dataset(data, aggreg)
+    print(df_out.index)
+    print(df_out.describe())
+    print(df_out.head())
     if save_csv:
-        save_pandas_to_csv(data, out_path=out_data_path, drop_nan=True, csv_name=csv_name, aggreg=aggreg)
+        save_pandas_to_csv(df_out, out_path=out_data_path, csv_name=csv_name)
     if save_json:
-        save_pandas_to_json(data, out_path=out_data_path, drop_nan=True, json_name=json_name, aggreg=aggreg)
+        save_pandas_to_json(df_out, out_path=out_data_path, json_name=json_name)
+    if save_to_db:
+        save_df_to_database(df=df_out, table_name="addvantage")
 
-    return data
+    return df_out

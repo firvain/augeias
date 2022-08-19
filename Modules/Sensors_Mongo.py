@@ -14,9 +14,8 @@ mongo_url = os.environ.get("MONGO_DB")
 
 
 def get_mongo_data(collection, key_list=[], key_list2=[], past_hours=24):
-    print(collection)
-
-    print(mongo_url)
+    print(f"connecting to collection {collection}")
+    print(f'mongo_url {mongo_url}')
     client = pymongo.MongoClient(mongo_url)
 
     db = client['payloads']
