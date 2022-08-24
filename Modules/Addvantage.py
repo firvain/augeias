@@ -11,6 +11,8 @@ import pandas.errors
 import pytz
 import requests
 import xmltodict
+from colorama import Fore
+from colorama import init
 from dotenv import load_dotenv
 from pandas import DataFrame, to_datetime
 
@@ -18,14 +20,10 @@ from Utils.Database import save_df_to_database, upsert_df
 # Use load_env to trace the path of .env:
 from Utils.Pandas_utils import resample_dataset, save_pandas_to_csv, save_pandas_to_json
 
+init(autoreset=True)
 load_dotenv('.env')
 
 base_url = os.environ.get("ADDVANTAGE_URL")
-hours = 24 * 1
-slots = int(hours * 60 / 5)
-current_datetime = to_datetime('today').normalize()
-current_minus = current_datetime - timedelta(hours=hours)
-before_datetime = current_minus.replace(microsecond=0)
 
 my_timezone = pytz.timezone('Europe/Athens')
 
@@ -97,7 +95,7 @@ def get_addvantage_session_id():
 def logout_addvantage(session_id=""):
     response = requests.get(
         f"{base_url}function=logout&session-id={session_id}&mode=t")
-    print(response.status_code)
+    print(f"addvantage logout status code: {Fore.CYAN}{response.status_code}")
 
 
 def get_config(session_id):
@@ -106,11 +104,15 @@ def get_config(session_id):
     print(json.dumps(obj, ensure_ascii=False).encode("utf8").decode())
 
 
-def get_addvantage_data_from_server(session_id, sensor_id):
+def get_addvantage_data_from_server(session_id, sensor_id, past_hours=24):
+    slots = int(past_hours * 60 / 5)
+    current_datetime = to_datetime('today').normalize()
+    current_minus = current_datetime - timedelta(hours=past_hours)
+    before_datetime = current_minus.replace(microsecond=0)
     response = requests.get(
         f"{base_url}function=getdata&session-id={session_id}&id={sensor_id}&date={before_datetime.strftime('%Y%m%dT%H:%M:%S')}&slots={slots}&cache=y&mode=t")
     json_dict = xmltodict.parse(response.content)
-
+    print(json_dict)
     json_WWTP = {}
     measurements = {}
     diagnostics = {}
@@ -185,7 +187,7 @@ def get_addvantage_data_from_server(session_id, sensor_id):
             qa[i].append(item['value'])
 
     qa['timestamp'] = sorted(set(qa['timestamp']))
-    # print(qa)
+
     df = DataFrame.from_dict(qa)
 
     df["timestamp"] = to_datetime(df['timestamp'], format='%Y-%m-%dT%H:%M:%S')
@@ -197,16 +199,16 @@ def get_addvantage_data_from_server(session_id, sensor_id):
 
 def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name="", save_json=False, json_name="",
                             drop_nan=False, aggreg={},
-                            save_to_db=True):
+                            save_to_db=True, past_hours=24):
     session_id = get_addvantage_session_id()
-    data = get_addvantage_data_from_server(session_id, sensor_id=7608)
+    data = get_addvantage_data_from_server(session_id, sensor_id=7608, past_hours=past_hours)
     logout_addvantage(session_id)
     if drop_nan:
         data.dropna(how='all', inplace=True)
     df_out = resample_dataset(data, aggreg)
-    print(df_out.index)
-    print(df_out.describe())
-    print(df_out.head())
+    # print(df_out.index)
+    # print(df_out.describe())
+    # print(df_out.head())
     if save_csv:
         save_pandas_to_csv(df_out, out_path=out_data_path, csv_name=csv_name)
     if save_json:

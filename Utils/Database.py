@@ -2,16 +2,12 @@ import os
 import uuid
 
 import pandas as pd
-import pytz
-import requests
 import sqlalchemy
-import xmltodict
+from colorama import Fore, init
 from dotenv import load_dotenv
-from pandas import DataFrame, to_datetime
 from sqlalchemy import create_engine
 
-from Utils.Pandas_utils import resample_dataset
-
+init(autoreset=True)
 load_dotenv('.env')
 POSTGRESQL_URL = os.environ.get("POSTGRESQL_URL")
 
@@ -21,11 +17,11 @@ def save_df_to_database(df: pd.DataFrame, table_name: str):
         print(f"saving {table_name} to db")
         engine = create_engine(POSTGRESQL_URL)
         try:
-            upsert_df(df=df, table_name=table_name, engine=engine)
+            return upsert_df(df=df, table_name=table_name, engine=engine)
         except ValueError as e:
             print(e)
     else:
-        print("table name is empty!!!")
+        print(f"{Fore.READ}Table name is empty!!!")
         pass
 
 
