@@ -1,5 +1,7 @@
 import time
 import os
+
+from apscheduler.triggers.cron import CronTrigger
 from colorama import Fore
 from colorama import Style
 from colorama import init
@@ -9,10 +11,14 @@ init(autoreset=True)
 
 
 def my_schedule(job):
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(job, 'interval', minutes=5)
+    scheduler = BackgroundScheduler({'apscheduler.timezone': 'Europe/Athens'})
+
+    trigger = CronTrigger(
+        year="*", month="*", day="*", hour="*", minute="10", second="0"
+    )
+    scheduler.add_job(job, trigger=trigger, name="daily pull data")
     scheduler.start()
-    print(f'{Fore.GREEN} Press Ctrl+C to exit')
+
     try:
         # This is here to simulate application activity (which keeps the main thread alive).
         while True:
