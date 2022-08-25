@@ -6,7 +6,7 @@ def rename_pandas_columns(df, cols):
     return out_df
 
 
-def save_pandas_to_csv(df, csv_name, out_path="", drop_nan=False):
+def save_pandas_to_csv(df, csv_name, out_path=""):
     out_dir = Path(out_path)
     out_dir.mkdir(parents=True, exist_ok=True)
     df_out = df.copy(deep=True)

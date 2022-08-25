@@ -19,12 +19,15 @@ mongo_url = os.environ.get("MONGO_DB")
 def get_mongo_data(collection, key_list=[], key_list2=[], past_hours=24):
     print(f"connecting to collection {Fore.CYAN}{collection}")
     print(f'{Fore.BLUE}mongo_url {mongo_url}')
+
     client = pymongo.MongoClient(mongo_url)
 
     db = client['payloads']
     col = db[collection]
     today = datetime.utcnow()
-    print(f"{Fore.CYAN}{today}")
+    print(f"today is {Fore.CYAN}{today}")
+    back = today - timedelta(hours=past_hours)
+    print(f'start at {Fore.LIGHTMAGENTA_EX} {back}')
     json_data_list = []
     for x in col.find({"arrived_at": {"$gt": today - timedelta(hours=past_hours)}}):
         try:
@@ -40,7 +43,7 @@ def get_mongo_data(collection, key_list=[], key_list2=[], past_hours=24):
             pass
 
     df = DataFrame(json_normalize(json_data_list, max_level=1))
-    print(json_data_list)
+    # print(json_data_list)
     if not df.empty:
         df.set_index("timestamp", inplace=True)
 
