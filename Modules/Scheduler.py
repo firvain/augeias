@@ -14,7 +14,7 @@ def my_schedule(job):
     scheduler = BackgroundScheduler({'apscheduler.timezone': 'Europe/Athens'})
 
     trigger = CronTrigger(
-        year="*", month="*", day="*", hour="*", minute="5", second="0"
+        year="*", month="*", day="*", hour="0", minute="5", second="0"
     )
     scheduler.add_job(job, trigger=trigger, name="daily pull data")
     scheduler.start()
