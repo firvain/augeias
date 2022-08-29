@@ -115,7 +115,8 @@ def get_sensor_data():
         m4['Turbidity0-NTU'] = np.where(
             (m4['Turbidity0-NTU'] < 0.0) | (m4['Turbidity0-NTU'] > 40.0),
             np.nan, m4['Turbidity0-NTU'])
-
+        m4 = rename_pandas_columns(m4, {'Conductivity0-μS/cm': "Conductivity", 'RDO0-mg/l': 'RDO', 'TSS0-mg/l': 'TSS',
+                                        'Turbidity0-NTU': 'Turbidity'})
         m4_out = resample_dataset(m4)
         m4_out.dropna(how='all', inplace=True)
         save_pandas_to_csv(m4_out, out_path="Data/Sensors", csv_name="Aquatroll.csv")
