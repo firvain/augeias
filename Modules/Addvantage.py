@@ -165,19 +165,19 @@ def get_addvantage_data_from_server(session_id, sensor_id, past_hours=24):
 
     json_WWTP["measurements"] = measurements
     json_WWTP["diagnostics"] = diagnostics
-    # print(json_WWTP["measurements"])
+
     json_data = json.dumps(json_WWTP)
 
     dicti = json.loads(json_data)
 
     qa = {'timestamp': []}
     for i in dicti['measurements']:
+
         qa[i] = []
         for idx, item in enumerate(dicti['measurements'][i]):
             if idx == 0:
                 item['time'] = datetime.strptime(item["time"], "%Y%m%dT%H:%M:%S")
                 item['time'] = my_timezone.localize(item['time'])
-
             else:
 
                 item["time"] = dicti['measurements'][i][idx - 1]["time"] + timedelta(seconds=int(item["time"][1:]))
@@ -187,13 +187,15 @@ def get_addvantage_data_from_server(session_id, sensor_id, past_hours=24):
             qa[i].append(item['value'])
 
     qa['timestamp'] = sorted(set(qa['timestamp']))
+    for i, k in enumerate(qa):
+        if (len(qa[k]) < len(qa['timestamp'])) and (k != "timestamp"):
+            qa[k].append([0.0 for x in range(len(qa['timestamp']) - len(qa[k]))][0])
 
     df = DataFrame.from_dict(qa)
 
     df["timestamp"] = to_datetime(df['timestamp'], format='%Y-%m-%dT%H:%M:%S')
     df.set_index('timestamp', inplace=True)
     df.sort_index(inplace=True)
-    # print(df.columns.tolist())
     return df.apply(pd.to_numeric)
 
 
@@ -201,8 +203,30 @@ def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name="", save_
                             drop_nan=False, aggreg={},
                             save_to_db=True, past_hours=24):
     session_id = get_addvantage_session_id()
+
     data = get_addvantage_data_from_server(session_id, sensor_id=7608, past_hours=past_hours)
     logout_addvantage(session_id)
+    data['Wind speed 100 Hz'] = np.where(
+        (data['Wind speed 100 Hz'] < 0.8) & (data['Wind speed 100 Hz'] > 60.0),
+        np.nan, data['Wind speed 100 Hz'])
+    data['RH'] = np.where(
+        (data['RH'] < 0.0) & (data['RH'] > 100.0),
+        np.nan, data['RH'])
+    data['Air temperature'] = np.where(
+        (data['Air temperature'] < -40.0) & (data['Air temperature'] > 60.0),
+        np.nan, data['Air temperature'])
+    data['Leaf Wetness'] = np.where(
+        (data['Leaf Wetness'] < 0.0) & (data['Leaf Wetness'] > 10.0),
+        np.nan, data['Leaf Wetness'])
+    data['Soil moisture_25cm'] = np.where(
+        (data['Soil moisture_25cm'] < 0.0) & (data['Soil moisture_25cm'] > 100.0),
+        np.nan, data['Soil moisture_25cm'])
+    data['Soil moisture_15cm'] = np.where(
+        (data['Soil moisture_15cm'] < 0.0) & (data['Soil moisture_15cm'] > 100.0),
+        np.nan, data['Soil moisture_25cm'])
+    data['Soil moisture_5cm'] = np.where(
+        (data['Soil moisture_5cm'] < 0.0) & (data['Soil moisture_5cm'] > 100.0),
+        np.nan, data['Soil moisture_25cm'])
     if drop_nan:
         data.dropna(how='all', inplace=True)
     df_out = resample_dataset(data, aggreg)

@@ -125,3 +125,5 @@ xlrd==2.0.1
 xmltodict==0.13.0
 zict==2.2.0
 zipp==3.8.0
+
+gdown~=4.5.1
