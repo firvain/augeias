@@ -210,23 +210,23 @@ def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name="", save_
         (data['Wind speed 100 Hz'] < 0.8) & (data['Wind speed 100 Hz'] > 60.0),
         np.nan, data['Wind speed 100 Hz'])
     data['RH'] = np.where(
-        (data['RH'] < 0.0) & (data['RH'] > 100.0),
+        (data['RH'] < 0.0) | (data['RH'] > 100.0),
         np.nan, data['RH'])
     data['Air temperature'] = np.where(
-        (data['Air temperature'] < -40.0) & (data['Air temperature'] > 60.0),
+        (data['Air temperature'] < -40.0) | (data['Air temperature'] > 60.0),
         np.nan, data['Air temperature'])
     data['Leaf Wetness'] = np.where(
-        (data['Leaf Wetness'] < 0.0) & (data['Leaf Wetness'] > 10.0),
+        (data['Leaf Wetness'] < 0.0) | (data['Leaf Wetness'] > 10.0),
         np.nan, data['Leaf Wetness'])
     data['Soil moisture_25cm'] = np.where(
-        (data['Soil moisture_25cm'] < 0.0) & (data['Soil moisture_25cm'] > 100.0),
+        (data['Soil moisture_25cm'] < 0.0) | (data['Soil moisture_25cm'] > 100.0),
         np.nan, data['Soil moisture_25cm'])
     data['Soil moisture_15cm'] = np.where(
-        (data['Soil moisture_15cm'] < 0.0) & (data['Soil moisture_15cm'] > 100.0),
+        (data['Soil moisture_15cm'] < 0.0) | (data['Soil moisture_15cm'] > 100.0),
         np.nan, data['Soil moisture_25cm'])
     data['Soil moisture_5cm'] = np.where(
-        (data['Soil moisture_5cm'] < 0.0) & (data['Soil moisture_5cm'] > 100.0),
-        np.nan, data['Soil moisture_25cm'])
+        (data['Soil moisture_5cm'] < 0.0) | (data['Soil moisture_5cm'] > 100.0),
+        np.nan, data['Soil moisture_5cm'])
     if drop_nan:
         data.dropna(how='all', inplace=True)
     df_out = resample_dataset(data, aggreg)

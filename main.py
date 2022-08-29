@@ -28,21 +28,21 @@ def get_sensor_data():
                                       past_hours=PAST_HOURS)
 
     if m1 is not None and isinstance(m1, DataFrame) and not m1.empty:
-        m1['soil-bulk-ec0-uS/cm'] = np.where((m1['soil-bulk-ec0-uS/cm'] < 0) & (m1['soil-bulk-ec0-uS/cm'] > 20000.0),
+        m1['soil-bulk-ec0-uS/cm'] = np.where((m1['soil-bulk-ec0-uS/cm'] < 0) | (m1['soil-bulk-ec0-uS/cm'] > 20000.0),
                                              np.nan, m1['soil-bulk-ec0-uS/cm'])
-        m1['soil-moisture0-%'] = np.where((m1['soil-moisture0-%'] < 0) & (m1['soil-moisture0-%'] > 100.0),
+        m1['soil-moisture0-%'] = np.where((m1['soil-moisture0-%'] < 0) | (m1['soil-moisture0-%'] > 100.0),
                                           np.nan, m1['soil-moisture0-%'])
-        m1['soil-temperature0-C'] = np.where((m1['soil-temperature0-C'] < -40.) & (m1['soil-temperature0-C'] > 60.0),
+        m1['soil-temperature0-C'] = np.where((m1['soil-temperature0-C'] < -40.) | (m1['soil-temperature0-C'] > 60.0),
                                              np.nan, m1['soil-temperature0-C'])
 
         m1 = rename_pandas_columns(m1, {'soil-bulk-ec0-uS/cm': 'soil-bulk-ec', 'soil-moisture0-%': 'soil-moisture',
                                         'soil-temperature0-C': 'soil-temperature'})
         m1_out = resample_dataset(m1)
         m1.dropna(how='all', inplace=True)
-        save_pandas_to_csv(m1_out, out_path="Data/Sensors", csv_name="teros_12.csv")
-        save_pandas_to_json(m1_out, out_path="Data/Sensors", json_name="teros_12.json")
+        save_pandas_to_csv(m1_out, out_path="Data/Sensors", csv_name="Teros_12.csv")
+        save_pandas_to_json(m1_out, out_path="Data/Sensors", json_name="Teros_12.json")
 
-        save_df_to_database(df=m1_out, table_name="teros_12")
+        save_df_to_database(df=m1_out, table_name="Teros_12")
 
     # Triscan -> ok
     print("working on Triscan")
@@ -82,9 +82,9 @@ def get_sensor_data():
                                       past_hours=PAST_HOURS)
 
     if m3 is not None and isinstance(m3, DataFrame) and not m3.empty:
-        m3['analogInput.2'] = np.where((m3['analogInput.2'] < 0) & (m3['analogInput.2'] > 2.0),
+        m3['analogInput.2'] = np.where((m3['analogInput.2'] < 0) | (m3['analogInput.2'] > 2.0),
                                        np.nan, m3['analogInput.2'])
-        m3['temperatureSensor.1'] = np.where((m3['temperatureSensor.1'] < 5.0) & (m3['temperatureSensor.1'] > 45.0),
+        m3['temperatureSensor.1'] = np.where((m3['temperatureSensor.1'] < 5.0) | (m3['temperatureSensor.1'] > 45.0),
                                              np.nan, m3['temperatureSensor.1'])
 
         m3 = rename_pandas_columns(m3, {'analogInput.2': "chlorine", 'temperatureSensor.1': 'temperatureSensor'})
@@ -104,16 +104,16 @@ def get_sensor_data():
 
     if m4 is not None and isinstance(m4, DataFrame) and not m4.empty:
         m4['Conductivity0-μS/cm'] = np.where(
-            (m4['Conductivity0-μS/cm'] < 0.0) & (m4['Conductivity0-μS/cm'] > 350000.0),
+            (m4['Conductivity0-μS/cm'] < 0.0) | (m4['Conductivity0-μS/cm'] > 350000.0),
             np.nan, m4['Conductivity0-μS/cm'])
         m4['RDO0-mg/l'] = np.where(
-            (m4['RDO0-mg/l'] < 0.0) & (m4['RDO0-mg/l'] > 60.0),
+            (m4['RDO0-mg/l'] < 0.0) | (m4['RDO0-mg/l'] > 60.0),
             np.nan, m4['RDO0-mg/l'])
         m4['TSS0-mg/l'] = np.where(
-            (m4['TSS0-mg/l'] < 0.0) & (m4['TSS0-mg/l'] > 1500.0),
-            np.nan, m4['Conductivity0-μS/cm'])
+            (m4['TSS0-mg/l'] < 0.0) | (m4['TSS0-mg/l'] > 1500.0),
+            np.nan, m4['TSS0-mg/l'])
         m4['Turbidity0-NTU'] = np.where(
-            (m4['Turbidity0-NTU'] < 0.0) & (m4['Turbidity0-NTU'] > 40.0),
+            (m4['Turbidity0-NTU'] < 0.0) | (m4['Turbidity0-NTU'] > 40.0),
             np.nan, m4['Turbidity0-NTU'])
 
         m4_out = resample_dataset(m4)
@@ -140,19 +140,19 @@ def get_sensor_data():
                                     })
 
         m5['pH'] = np.where(
-            (m5['pH'] < 0.0) & (m5['pH'] > 14.0),
+            (m5['pH'] < 0.0) | (m5['pH'] > 14.0),
             np.nan, m5['pH'])
         m5['ORP'] = np.where(
-            (m5['ORP'] < -999.0) & (m5['ORP'] > 999.0),
+            (m5['ORP'] < -999.0) | (m5['ORP'] > 999.0),
             np.nan, m5['ORP'])
         m5['BOD'] = np.where(
-            (m5['BOD'] < 0.0) & (m5['BOD'] > 300.0),
+            (m5['BOD'] < 0.0) | (m5['BOD'] > 300.0),
             np.nan, m5['BOD'])
         m5['COD'] = np.where(
-            (m5['COD'] < 0.0) & (m5['COD'] > 600.0),
+            (m5['COD'] < 0.0) | (m5['COD'] > 600.0),
             np.nan, m5['COD'])
         m5['NO3'] = np.where(
-            (m5['NO3'] < 0.0) & (m5['NO3'] > 100.0),
+            (m5['NO3'] < 0.0) | (m5['NO3'] > 100.0),
             np.nan, m5['NO3'])
 
         m5_out = resample_dataset(m5)
@@ -173,25 +173,25 @@ def get_sensor_data():
 
     if m7 is not None and isinstance(m7, DataFrame) and not m7.empty:
         m7['air-temperature0-C'] = np.where(
-            (m7['air-temperature0-C'] < -50.0) & (m7['air-temperature0-C'] > 60.0),
+            (m7['air-temperature0-C'] < -50.0) | (m7['air-temperature0-C'] > 60.0),
             np.nan, m7['air-temperature0-C'])
         m7['gust-windspeed0-m/s'] = np.where(
-            (m7['gust-windspeed0-m/s'] < 0.0) & (m7['gust-windspeed0-m/s'] > 30.0),
+            (m7['gust-windspeed0-m/s'] < 0.0) | (m7['gust-windspeed0-m/s'] > 30.0),
             np.nan, m7['gust-windspeed0-m/s'])
         m7['precipitation0-mm'] = np.where(
-            (m7['precipitation0-mm'] < 0.0) & (m7['precipitation0-mm'] > 400.0),
+            (m7['precipitation0-mm'] < 0.0) | (m7['precipitation0-mm'] > 400.0),
             np.nan, m7['precipitation0-mm'])
         m7['relative-humidity0-%'] = np.where(
-            (m7['relative-humidity0-%'] < 0.0) & (m7['relative-humidity0-%'] > 100.0),
+            (m7['relative-humidity0-%'] < 0.0) | (m7['relative-humidity0-%'] > 100.0),
             np.nan, m7['relative-humidity0-%'])
         m7['solar-radiation0-W/m2'] = np.where(
-            (m7['solar-radiation0-W/m2'] < 0.0) & (m7['solar-radiation0-W/m2'] > 1750.0),
+            (m7['solar-radiation0-W/m2'] < 0.0) | (m7['solar-radiation0-W/m2'] > 1750.0),
             np.nan, m7['solar-radiation0-W/m2'])
         m7['wind-direction0-Degrees'] = np.where(
-            (m7['wind-direction0-Degrees'] < 0.0) & (m7['wind-direction0-Degrees'] > 359.0),
+            (m7['wind-direction0-Degrees'] < 0.0) | (m7['wind-direction0-Degrees'] > 359.0),
             np.nan, m7['wind-direction0-Degrees'])
         m7['windspeed0-m/s'] = np.where(
-            (m7['windspeed0-m/s'] < 0.0) & (m7['windspeed0-m/s'] > 30.0),
+            (m7['windspeed0-m/s'] < 0.0) | (m7['windspeed0-m/s'] > 30.0),
             np.nan, m7['windspeed0-m/s'])
 
         # m5 = m5[(m5['atmospheric-pressure0-kPa'] < 0.0) & (m5['atmospheric-pressure0-kPa'] > 30.0)] # TODO MISSING
@@ -245,7 +245,7 @@ if __name__ == '__main__':
     #
     # get_sensor_data()
     my_schedule(get_sensor_data)
-    # detect_anomalies('teros_12')
+    # detect_anomalies('Teros_12')
     # detect_anomalies('Triscan')
     # detect_anomalies('Scan_chlori')
     # detect_anomalies('Aquatroll')
