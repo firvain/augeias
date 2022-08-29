@@ -29,8 +29,10 @@ tf.random.set_seed(RANDOM_SEED)
 engine = create_engine('postgresql://augeias:augeias@83.212.19.17:5432/augeias')
 table_name = "Teros_12"
 variable_name = 'soil-bulk-ec'
+variable_name = 'soil-moisture'
+variable_name = 'soil-temperature'
 try:
-    sql = f"""select timestamp, "{variable_name}" from {table_name}"""
+    sql = f"""select timestamp, "{variable_name}" from "{table_name}" order by timestamp"""
     print(sql)
     data = pd.read_sql(sql, con=engine, index_col="timestamp")
     print(data)
@@ -42,7 +44,9 @@ print(data)
 
 df = data[[variable_name]].copy()
 print(df.tail())
-# plt.plot(df, label='close price')
+plt.plot(df, label='close price')
+plt.show()
+quit()
 # plt.legend()
 # plt.show()
 
@@ -70,7 +74,7 @@ def create_dataset(X, y, time_steps=1):
     return np.array(Xs), np.array(ys)
 
 
-TIME_STEPS = 7
+TIME_STEPS = 3
 
 # reshape to [samples, time_steps, n_features]
 
@@ -136,24 +140,26 @@ print(anomalies.head())
 # print(type(test[TIME_STEPS:].close))
 # print(test[TIME_STEPS:].shape)
 # print(test[TIME_STEPS:].close.shape)
-anomalies.to_csv('anomalies.csv')
+
 
 yhat = scaler.inverse_transform(anomalies[variable_name].values.reshape(-1, 1)).reshape(-1)
-print(yhat)
-plt.plot(
-    test[TIME_STEPS:].index,
-    scaler.inverse_transform(test[TIME_STEPS:][variable_name].values.reshape(-1, 1)),
-    label='close price'
-)
+anomalies[variable_name] = yhat
+anomalies.to_csv(f'anomalies_{variable_name}_{table_name}.csv')
+
+# plt.plot(
+#     test[TIME_STEPS:].index,
+#     scaler.inverse_transform(test[TIME_STEPS:][variable_name].values.reshape(-1, 1)),
+#     label='close price'
+# )
 # df = pd.DataFrame({'timestep': anomalies.index.to_numpy(), 'animalie': yhat})
 # df.s
-# sns.scatterplot(
-#     anomalies.index,
-#     scaler.inverse_transform(anomalies[variable_name].values.reshape(-1, 1)).reshape(-1),
-#     color=sns.color_palette()[3],
-#     s=52,
-#     label='anomaly'
-# )
+sns.scatterplot(
+    anomalies.index,
+    scaler.inverse_transform(anomalies[variable_name].values.reshape(-1, 1)).reshape(-1),
+    color=sns.color_palette()[3],
+    s=52,
+    label=f'anomalies {variable_name}'
+)
 # quit()
 plt.xticks(rotation=25)
 plt.legend()

@@ -225,7 +225,7 @@ def get_sensor_data():
                                                'Soil temperature_5cm': "mean", 'Soil moisture_25cm': "mean",
                                                'Soil moisture_15cm': "mean", 'Soil moisture_5cm': "mean",
                                                'Precipitation': "sum", 'Pyranometer': "mean"
-                                               }, past_hours=PAST_HOURS, save_to_db=False)
+                                               }, past_hours=PAST_HOURS, save_to_db=True)
 
 
 if __name__ == '__main__':
@@ -243,8 +243,8 @@ if __name__ == '__main__':
     #                                out_data_path="Data/addvantage/result",
     #                                csv_name="addvantage.csv", save_to_db=False, db_mode='replace', plot=True)
     #
-    # get_sensor_data()
-    my_schedule(get_sensor_data)
+    get_sensor_data()
+    # my_schedule(get_sensor_data)
     # detect_anomalies('Teros_12')
     # detect_anomalies('Triscan')
     # detect_anomalies('Scan_chlori')
