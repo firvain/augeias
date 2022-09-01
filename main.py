@@ -6,6 +6,8 @@ import numpy as np
 from pandas import DataFrame, merge, notnull, pivot_table, to_numeric
 
 from Modules import Addvantage, Sensors_Mongo
+from Modules.ADTK import calc_anomalies_ADKT
+from Modules.OpenWeather import get_openweather_daily
 from Modules.Scheduler import my_schedule
 from Modules.SensorAnomalyDetection import detect_anomalies
 from Utils.Database import save_df_to_database
@@ -245,11 +247,17 @@ if __name__ == '__main__':
     #                                csv_name="addvantage.csv", save_to_db=False, db_mode='replace', plot=True)
     #
     # get_sensor_data()
-    my_schedule(get_sensor_data)
+    openweather_daily = get_openweather_daily(save_to_db=True)
+
+    # my_schedule(get_sensor_data)
     # detect_anomalies('Teros_12')
     # detect_anomalies('Triscan')
     # detect_anomalies('Scan_chlori')
     # detect_anomalies('Aquatroll')
     # detect_anomalies('Proteus_infinite')
     # detect_anomalies('ATMOS')
+    # sensor_list = ['addvantage', 'Teros_12', 'Triscan', 'Scan_chlori', 'Aquatroll', 'Proteus_infinite', 'ATMOS']
+    # # sensor_list = ['addvantage']
+    # for sensor in sensor_list:
+    #     calc_anomalies_ADKT(out_path='Data/Sensors/Anomalies', table_name=sensor)
     # Rest.test()

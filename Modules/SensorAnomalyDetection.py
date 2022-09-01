@@ -29,7 +29,7 @@ def detect_anomalies(table_name: str):
         isolation_forest = IsolationForest(contamination='auto', random_state=42)
         isolation_forest.fit(df[column].values.reshape(-1, 1))
 
-        xx = np.linspace(df[column].min(), df[column].max(), len(df)).reshape(-1, 1)
+        xx = np.linspace(df[column].min_val(), df[column].max(), len(df)).reshape(-1, 1)
         anomaly_score = isolation_forest.decision_function(xx)
         outlier = isolation_forest.predict(xx)
 
