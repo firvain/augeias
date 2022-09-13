@@ -6,10 +6,12 @@ import numpy as np
 from pandas import DataFrame, merge, notnull, pivot_table, to_numeric
 
 from Modules import Addvantage, Sensors_Mongo
+from Modules.Accuweather import get_accuweather_daily
 from Modules.ADTK import calc_anomalies_ADKT
 from Modules.OpenWeather import get_openweather_daily
 from Modules.Scheduler import my_schedule
 from Modules.SensorAnomalyDetection import detect_anomalies
+from Modules.LSTMAnomalyDetection import detect_anomalies_lstm
 from Utils.Database import save_df_to_database
 # Press the green button in the gutter to run the script.
 from Utils.Pandas_utils import rename_pandas_columns, resample_dataset, save_pandas_to_csv, save_pandas_to_json
@@ -247,9 +249,9 @@ if __name__ == '__main__':
     #                                csv_name="addvantage.csv", save_to_db=False, db_mode='replace', plot=True)
     #
     # get_sensor_data()
-    openweather_daily = get_openweather_daily(save_to_db=True)
-
-    # my_schedule(get_sensor_data)
+    # openweather_daily = get_openweather_daily(save_to_db=True)
+    # get_accuweather_daily(save_to_db=True)
+    my_schedule(get_sensor_data)
     # detect_anomalies('Teros_12')
     # detect_anomalies('Triscan')
     # detect_anomalies('Scan_chlori')
@@ -261,3 +263,12 @@ if __name__ == '__main__':
     # for sensor in sensor_list:
     #     calc_anomalies_ADKT(out_path='Data/Sensors/Anomalies', table_name=sensor)
     # Rest.test()
+
+    # LSTM Anomaly detection
+    # detect_anomalies_lstm(table_name='Teros_12')
+    # detect_anomalies_lstm(table_name='Triscan')
+    # detect_anomalies_lstm(table_name='Scan_chlori')
+    # detect_anomalies_lstm(table_name='Aquatroll')
+    # detect_anomalies_lstm(table_name='Proteus_infinite')
+    # detect_anomalies_lstm(table_name='ATMOS')
+    # detect_anomalies_lstm(table_name='addvantage')

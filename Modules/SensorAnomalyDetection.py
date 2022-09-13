@@ -29,14 +29,15 @@ def detect_anomalies(table_name: str):
         isolation_forest = IsolationForest(contamination='auto', random_state=42)
         isolation_forest.fit(df[column].values.reshape(-1, 1))
 
-        xx = np.linspace(df[column].min_val(), df[column].max(), len(df)).reshape(-1, 1)
+        xx = np.linspace(df[column].min(), df[column].max(), len(df)).reshape(-1, 1)
         anomaly_score = isolation_forest.decision_function(xx)
         outlier = isolation_forest.predict(xx)
 
         axs[i].plot(xx, anomaly_score, label='anomaly score')
         axs[i].fill_between(xx.T[0], np.min(anomaly_score), np.max(anomaly_score),
-                            where=outlier == -1, color='r',
+                            where=outlier == -1, color='gray',
                             alpha=.4, label='outlier region')
         axs[i].legend()
         axs[i].set_title(column)
-    plt.savefig(f'Anomalies of {table_name.capitalize()}.png')
+    plt.show()
+    # plt.savefig(f'Anomalies of {table_name.capitalize()}.png')
