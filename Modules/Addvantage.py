@@ -164,6 +164,7 @@ def get_addvantage_data_from_server(session_id, sensor_id, past_hours=24):
             diagnostics[titles[k]] = json_dict["response"]["node"][k]["error"]["@msg"]
 
     json_WWTP["measurements"] = measurements
+
     json_WWTP["diagnostics"] = diagnostics
 
     json_data = json.dumps(json_WWTP)
@@ -188,8 +189,9 @@ def get_addvantage_data_from_server(session_id, sensor_id, past_hours=24):
 
     qa['timestamp'] = sorted(set(qa['timestamp']))
     for i, k in enumerate(qa):
+
         if (len(qa[k]) < len(qa['timestamp'])) and (k != "timestamp"):
-            qa[k].append([0.0 for x in range(len(qa['timestamp']) - len(qa[k]))][0])
+            qa[k].extend([0.0 for x in range(len(qa['timestamp']) - len(qa[k]))])
 
     df = DataFrame.from_dict(qa)
 
@@ -223,7 +225,7 @@ def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name="", save_
         np.nan, data['Soil moisture_25cm'])
     data['Soil moisture_15cm'] = np.where(
         (data['Soil moisture_15cm'] < 0.0) | (data['Soil moisture_15cm'] > 100.0),
-        np.nan, data['Soil moisture_25cm'])
+        np.nan, data['Soil moisture_15cm'])
     data['Soil moisture_5cm'] = np.where(
         (data['Soil moisture_5cm'] < 0.0) | (data['Soil moisture_5cm'] > 100.0),
         np.nan, data['Soil moisture_5cm'])

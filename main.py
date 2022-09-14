@@ -24,7 +24,7 @@ PAST_HOURS = 24 * PAST_DAYS
 
 
 def get_sensor_data():
-    # Teros_12 -> ok
+    # # # Teros_12 -> ok
     print(f"working on {Fore.GREEN}Teros_12")
     m1 = Sensors_Mongo.get_mongo_data('10d60580872b7e0a13ea5b1fe06e36caac95cb0c',
                                       ['soil-bulk-ec0-uS/cm', 'soil-moisture0-%',
@@ -64,7 +64,7 @@ def get_sensor_data():
         m2['soil-moisture15-%'] = np.where((m2['soil-moisture15-%'] > 100),
                                            np.nan, m2['soil-moisture15-%'])
         m2['soil-moisture25-%'] = np.where((m2['soil-moisture25-%'] > 100),
-                                           np.nan, m2['soil-moisture15-%'])
+                                           np.nan, m2['soil-moisture25-%'])
 
         m2 = rename_pandas_columns(m2, {
             'soil-temperature15-C': 'soil-temperature15', 'soil-temperature25-C': 'soil-temperature25',
@@ -72,6 +72,7 @@ def get_sensor_data():
             'soil-moisture15-%': "soil-moisture15", 'soil-moisture25-%': 'soil-moisture25',
             'soil-moisture5-%': 'soil-moisture5', 'soil-salinity15-dS/m': 'soil-salinity15',
             'soil-salinity25-dS/m': 'soil-salinity25', 'soil-salinity5-dS/m': 'soil-salinity5'})
+
         m2_out = resample_dataset(m2)
         m2_out.dropna(how='all', inplace=True)
         save_pandas_to_csv(m2_out, out_path="Data/Sensors", csv_name="Triscan.csv")
@@ -98,8 +99,8 @@ def get_sensor_data():
         save_pandas_to_json(m3_out, out_path="Data/Sensors", json_name="Scan_chlori.json")
 
         save_df_to_database(df=m3_out, table_name="Scan_chlori")
-
-    # Aquatroll(NDVI) -> ok
+    #
+    # # Aquatroll(NDVI) -> ok
     print(f"Working on {Fore.GREEN}Aquatroll")
 
     m4 = Sensors_Mongo.get_mongo_data('323c14d3d8ad3e919ce9699403cbc0ca2ead8c5b',
@@ -265,10 +266,10 @@ if __name__ == '__main__':
     # Rest.test()
 
     # LSTM Anomaly detection
-    # detect_anomalies_lstm(table_name='Teros_12')
-    # detect_anomalies_lstm(table_name='Triscan')
-    # detect_anomalies_lstm(table_name='Scan_chlori')
-    # detect_anomalies_lstm(table_name='Aquatroll')
-    # detect_anomalies_lstm(table_name='Proteus_infinite')
-    # detect_anomalies_lstm(table_name='ATMOS')
-    # detect_anomalies_lstm(table_name='addvantage')
+    # detect_anomalies_lstm(table_name='Teros_12', train_model=False)
+    # detect_anomalies_lstm(table_name='Triscan', train_model=False)
+    # detect_anomalies_lstm(table_name='Scan_chlori', train_model=False)
+    # detect_anomalies_lstm(table_name='Aquatroll', train_model=False)
+    # detect_anomalies_lstm(table_name='Proteus_infinite', train_model=False)
+    # detect_anomalies_lstm(table_name='ATMOS', train_model=False)
+    # detect_anomalies_lstm(table_name='addvantage', train_model=False)

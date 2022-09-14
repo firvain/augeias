@@ -37,6 +37,7 @@ def get_mongo_data(collection, key_list=[], key_list2=[], past_hours=24):
             # print(js)
             for key in js.keys():
                 if not js.get(key) is None:
+                    # print(js)
                     json_data_list.append(js)
         except (KeyError, json.JSONDecodeError, TypeError):
             # print(e)
