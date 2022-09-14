@@ -130,3 +130,4 @@ gdown~=4.5.1
 tensorflow~=2.9.1
 adtk~=0.6.2
 keras~=2.9.0
+plotly~=5.10.0
