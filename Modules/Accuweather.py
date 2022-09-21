@@ -25,18 +25,21 @@ class Hasher(dict):
         return value
 
 
-def get_accuweather_daily(save_to_db: bool):
+def get_accuweather_daily(save_to_db: bool = True):
     url = f'http://dataservice.accuweather.com/forecasts/v1/hourly/12hour/184896?apikey={api_key}&details=true&metric=true'
+
     print(url)
     try:
         response = requests.get(url)
         data = json.loads(response.text)
-        print(data)
+        # with open('json_data.json', 'r') as fcc_file:
+        #     data = json.load(fcc_file)
+        #     print(data)
         with open('json_data.json', 'w') as outfile:
             json.dump(data, outfile)
 
-        if data.get("Code") is not None:
-            raise Exception(data.get("Message"))
+        # if data.get("Code") is not None:
+        #     raise Exception(data.get("Message"))
 
         # out_data = np.empty(shape=(11, len(data['hourly'])))
         my_list = []
@@ -50,7 +53,7 @@ def get_accuweather_daily(save_to_db: bool):
             wind_speed = entry.get('Wind', {}).get('Speed', {}).get("Value")
 
             wind_deg = entry.get('Wind', {}).get('Direction', {}).get("Degrees")
-            wind_gust = entry.get('WindGust', {})
+            wind_gust = entry.get('WindGust', {}).get('Speed', {}).get("Value")
 
             uvi = entry["UVIndex"]
 
@@ -74,9 +77,9 @@ def get_accuweather_daily(save_to_db: bool):
                                    'wind_gust', 'uvi', 'rh', 'precipitation', 'rain', 'snow', 'ice', 'clouds',
                                    'solar_irradiance', 'evapotranspiration'])
         df.set_index('timestamp', inplace=True)
-        print(df)
+
         if save_to_db and not df.empty:
-            save_df_to_database(df=df[:24], table_name="accuweather_direct")
+            save_df_to_database(df=df, table_name="accuweather_direct")
         else:
             raise Exception('no data returned')
     except Exception as e:

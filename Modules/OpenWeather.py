@@ -17,7 +17,7 @@ load_dotenv('.env')
 api_key = os.environ.get("OPENWEATHER_API_KEY")
 
 
-def get_openweather_daily(save_to_db: bool):
+def get_openweather_daily(save_to_db: bool = True):
     url = f'https://api.openweathermap.org/data/2.5/onecall?lat=40.2989955&lon=21.7822009&appid=' + api_key + '&exclude=current,minutely,daily,alerts&units=metric'
     print(url)
     try:
