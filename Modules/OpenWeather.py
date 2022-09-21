@@ -51,6 +51,7 @@ def get_openweather_daily(save_to_db: bool):
         if save_to_db and not df.empty:
             save_df_to_database(df=df[:24], table_name="openweather_direct")
         else:
+            print(df[:24])
             raise Exception('no data returned')
     except Exception as e:
         print(e)

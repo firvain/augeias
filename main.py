@@ -24,6 +24,7 @@ PAST_HOURS = 24 * PAST_DAYS
 
 
 def get_sensor_data():
+    get_openweather_daily(save_to_db=True)
     # # # Teros_12 -> ok
     print(f"working on {Fore.GREEN}Teros_12")
     m1 = Sensors_Mongo.get_mongo_data('10d60580872b7e0a13ea5b1fe06e36caac95cb0c',
@@ -273,3 +274,4 @@ if __name__ == '__main__':
     # detect_anomalies_lstm(table_name='Proteus_infinite', train_model=False)
     # detect_anomalies_lstm(table_name='ATMOS', train_model=False)
     # detect_anomalies_lstm(table_name='addvantage', train_model=False)
+
