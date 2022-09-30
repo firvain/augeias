@@ -3,6 +3,7 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import numpy as np
+import pandas as pd
 from pandas import DataFrame, merge, notnull, pivot_table, to_numeric
 
 from Modules import Addvantage, Sensors_Mongo
@@ -21,6 +22,127 @@ from colorama import init
 init(autoreset=True)
 PAST_DAYS = 1
 PAST_HOURS = 24 * PAST_DAYS
+
+
+def get_sensor_data_continuously(past_minutes: int = 15):
+    # Aquatroll(NDVI) -> ok
+    try:
+        print(f"Working on {Fore.GREEN}Aquatroll")
+
+        m4 = Sensors_Mongo.get_mongo_datα_minutely('323c14d3d8ad3e919ce9699403cbc0ca2ead8c5b',
+                                                   ['Conductivity0-μS/cm', 'RDO0-mg/l', 'TSS0-mg/l', 'Turbidity0-NTU'],
+                                                   past_minutes=past_minutes)
+        print(m4)
+        if m4 is not None and isinstance(m4, DataFrame) and not m4.empty:
+            m4['Conductivity0-μS/cm'] = np.where(
+                (m4['Conductivity0-μS/cm'] < 0.0) | (m4['Conductivity0-μS/cm'] > 350000.0),
+                np.nan, m4['Conductivity0-μS/cm'])
+            m4['RDO0-mg/l'] = np.where(
+                (m4['RDO0-mg/l'] < 0.0) | (m4['RDO0-mg/l'] > 60.0),
+                np.nan, m4['RDO0-mg/l'])
+            m4['TSS0-mg/l'] = np.where(
+                (m4['TSS0-mg/l'] < 0.0) | (m4['TSS0-mg/l'] > 1500.0),
+                np.nan, m4['TSS0-mg/l'])
+            m4['Turbidity0-NTU'] = np.where(
+                (m4['Turbidity0-NTU'] < 0.0) | (m4['Turbidity0-NTU'] > 40.0),
+                np.nan, m4['Turbidity0-NTU'])
+            m4 = rename_pandas_columns(m4,
+                                       {'Conductivity0-μS/cm': "Conductivity", 'RDO0-mg/l': 'RDO', 'TSS0-mg/l': 'TSS',
+                                        'Turbidity0-NTU': 'Turbidity'})
+            m4.dropna(how='all', inplace=True)
+            # ALERTS!!!
+            m4['Conductivity_alert'] = np.nan
+            m4['Conductivity_alert'] = np.where(np.isnan(m4['Conductivity']), (m4['Conductivity'] * .001) <= 3.0,
+                                                (m4['Conductivity'] * .001) > 3.0)
+            m4['TSS_alert'] = np.nan
+
+            m4['TSS_alert'] = np.where(np.isnan(m4['TSS']), m4['TSS'] < 20.0,
+                                       m4['TSS'] >= 20.0)
+            m4.dropna(how='all', inplace=True)
+            save_pandas_to_csv(m4, out_path="Data/Sensors", csv_name="Aquatroll_alerts.csv")
+            save_pandas_to_json(m4, out_path="Data/Sensors", json_name="Aquatroll.json")
+            save_df_to_database(df=m4, table_name="Aquatroll_alerts")
+    except Exception as e:
+        print(e)
+        pass
+    # Proteus_infinite
+    try:
+        print(f"Working on {Fore.GREEN}Proteus_infinite")
+
+        m5 = Sensors_Mongo.get_mongo_datα_minutely('59a85c7da55bf1bf6e784675c060a2e71ee2373a',
+                                                   ['channel', 'sign', 'value'],
+                                                   past_minutes=past_minutes)
+
+        if m5 is not None and isinstance(m5, DataFrame) and not m5.empty:
+            m5 = m5.replace('--------', np.nan)
+            m5['value'] = to_numeric(m5["value"])
+            m5['sign'] = to_numeric(m5["sign"] + str(1))
+            m5.dropna(inplace=True)
+
+            m5["value"].apply(lambda x: x * m5['sign'] if notnull(x) else x)
+
+            m5 = pivot_table(m5, values="value", index=['timestamp'], columns=['channel'])
+            m5 = m5[m5.columns.intersection(["timestamp", "01", '02', "03", "04", "05", "06"])]
+            m5 = rename_pandas_columns(m5,
+                                       {'01': "pH", '02': 'ORP', "03": "total_coli", "04": "BOD", "05": "COD",
+                                        "06": "NO3",
+                                        })
+            # OUT OF BOUNDS
+            if 'ph' not in m5:
+                m5['pH'] = np.nan
+            m5['pH'] = np.where(
+                (m5['pH'] < 0.0) | (m5['pH'] > 14.0),
+                np.nan, m5['pH'])
+
+            if 'ORP' not in m5:
+                m5['ORP'] = np.nan
+            m5['ORP'] = np.where(
+                (m5['ORP'] < -999.0) | (m5['ORP'] > 999.0),
+                np.nan, m5['ORP'])
+            if 'BOD' not in m5:
+                m5['BOD'] = np.nan
+            m5['BOD'] = np.where(
+                (m5['BOD'] < 0.0) | (m5['BOD'] > 300.0),
+                np.nan, m5['BOD'])
+            if 'COD' not in m5:
+                m5['COD'] = np.nan
+            m5['COD'] = np.where(
+                (m5['COD'] < 0.0) | (m5['COD'] > 600.0),
+                np.nan, m5['COD'])
+            if 'NO3' not in m5:
+                m5['NO3'] = np.nan
+            m5['NO3'] = np.where(
+                (m5['NO3'] < 0.0) | (m5['NO3'] > 100.0),
+                np.nan, m5['NO3'])
+            if 'total_coli' not in m5:
+                m5['total_coli'] = np.nan
+            m5['total_coli'] = np.where(
+                (m5['total_coli'] < 1.0),
+                np.nan, m5['total_coli'])
+            m5.dropna(how='all', inplace=True)
+            # ALERTS!!!!
+            m5['total_coli_alert'] = np.nan
+            m5['total_coli_alert'] = np.where(np.isnan(m5['total_coli']), m5['total_coli'] <= 200,
+                                              m5['total_coli'] > 200)
+            m5['COD_alert'] = np.nan
+
+            m5['COD_alert'] = np.where(np.isnan(m5['COD']), 60 >= m5['COD'], 60 < m5['COD'])
+            m5['BOD_alert'] = np.nan
+            m5['BOD_alert'] = np.where(np.isnan(m5['BOD']), 20 >= m5['BOD'], 20 < m5['BOD'])
+            m5['pH_alert'] = np.nan
+
+            m5['pH_alert'] = np.where(np.isnan(m5['pH']), (m5['pH'] <= 8.5) & (m5['pH'] >= 6.5),
+                                      (m5['pH'] > 8.5) | (m5['pH'] < 6.5),
+                                      )
+
+            m5.dropna(how='all', inplace=True)
+
+            save_pandas_to_csv(m5, out_path="Data/Sensors", csv_name="Proteus_infinite_alerts.csv")
+            save_pandas_to_json(m5, out_path="Data/Sensors", json_name="Proteus_infinite.json")
+            save_df_to_database(df=m5, table_name="Proteus_infinite_alerts")
+    except Exception as e:
+        print(e)
+        pass
 
 
 def get_sensor_data():
@@ -280,7 +402,9 @@ if __name__ == '__main__':
     # get_sensor_data()
     # openweather_daily = get_openweather_daily(save_to_db=True)
     # get_accuweather_daily(save_to_db=True)
-    my_schedule(get_sensor_data, get_openweather_daily, get_accuweather_daily)
+    my_schedule(get_sensor_data, get_openweather_daily, get_accuweather_daily, get_sensor_data_continuously)
+    # pull_continuously(get_sensor_data_continusly)
+
     # detect_anomalies('Teros_12')
     # detect_anomalies('Triscan')
     # detect_anomalies('Scan_chlori')
