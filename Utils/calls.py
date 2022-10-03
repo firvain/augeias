@@ -11,6 +11,6 @@ def push_to_aws(df, table_name: str):
     data['timestamp'] = data['timestamp'].astype(str)
 
     url = f'{BASE_URL}{table_name}'
-    # print(data.to_json(orient='records'))
+    print(data.to_json(orient='records'))
     return requests.post(headers={'apikey': POST_API_KEY},
                          url=url, data=data.to_json(orient='records'))

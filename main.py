@@ -173,7 +173,7 @@ def get_sensor_data(save_to_db: bool = False):
             response = push_to_aws(m1_out, "Teros_12")
             print('push status code', response.status_code)
             response.raise_for_status()
-            # print(response.content)
+            print(response.content)
 
             save_pandas_to_csv(m1_out, out_path="Data/Sensors", csv_name="Teros_12.csv")
             save_pandas_to_json(m1_out, out_path="Data/Sensors", json_name="Teros_12.json")
@@ -211,7 +211,7 @@ def get_sensor_data(save_to_db: bool = False):
             response = push_to_aws(m2_out, "Triscan")
             print('push status code', response.status_code)
             response.raise_for_status()
-            # print(response.content)
+            print(response.content)
 
             save_pandas_to_csv(m2_out, out_path="Data/Sensors", csv_name="Triscan.csv")
             save_pandas_to_json(m2_out, out_path="Data/Sensors", json_name="Triscan.json")
@@ -242,7 +242,7 @@ def get_sensor_data(save_to_db: bool = False):
             response = push_to_aws(m3_out, "Scan_chlori")
             print('push status code', response.status_code)
             response.raise_for_status()
-            # print(response.content)
+            print(response.content)
 
             save_pandas_to_csv(m3_out, out_path="Data/Sensors", csv_name="Scan_chlori.csv")
             save_pandas_to_json(m3_out, out_path="Data/Sensors", json_name="Scan_chlori.json")
@@ -283,7 +283,7 @@ def get_sensor_data(save_to_db: bool = False):
             response = push_to_aws(m4_out, "Aquatroll")
             print('push status code', response.status_code)
             response.raise_for_status()
-            # print(response.content)
+            print(response.content)
 
             save_pandas_to_csv(m4_out, out_path="Data/Sensors", csv_name="Aquatroll.csv")
             save_pandas_to_json(m4_out, out_path="Data/Sensors", json_name="Aquatroll.json")
@@ -333,7 +333,7 @@ def get_sensor_data(save_to_db: bool = False):
             response = push_to_aws(m5_out, "Proteus_Infinite")
             print('push status code', response.status_code)
             response.raise_for_status()
-            # print(response.content)
+            print(response.content)
 
             save_pandas_to_csv(m5_out, out_path="Data/Sensors", csv_name="Proteus_infinite.csv")
             save_pandas_to_json(m5_out, out_path="Data/Sensors", json_name="Proteus_infinite.json")
@@ -395,7 +395,7 @@ def get_sensor_data(save_to_db: bool = False):
             response = push_to_aws(m7_out, "ATMOS")
             print('push status code', response.status_code)
             response.raise_for_status()
-            # print(response.content)
+            print(response.content)
 
             save_pandas_to_csv(m7_out, out_path="Data/Sensors", csv_name="ATMOS.csv")
             save_pandas_to_json(m7_out, out_path="Data/Sensors", json_name="ATMOS.json")
@@ -424,7 +424,7 @@ def get_sensor_data(save_to_db: bool = False):
         response = push_to_aws(out, "ADDvantage")
         print('push status code', response.status_code)
         response.raise_for_status()
-        # print(response.content)
+        print(response.content)
 
     except Exception as e:
         print(e)
