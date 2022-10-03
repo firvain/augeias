@@ -1,7 +1,3 @@
-# This is a sample Python script.
-
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, merge, notnull, pivot_table, to_numeric
@@ -13,6 +9,7 @@ from Modules.OpenWeather import get_openweather_daily
 from Modules.Scheduler import my_schedule
 from Modules.SensorAnomalyDetection import detect_anomalies
 from Modules.LSTMAnomalyDetection import detect_anomalies_lstm
+from Utils.calls import push_to_aws
 from Utils.Database import save_df_to_database
 # Press the green button in the gutter to run the script.
 from Utils.Pandas_utils import rename_pandas_columns, resample_dataset, save_pandas_to_csv, save_pandas_to_json
@@ -22,6 +19,9 @@ from colorama import init
 init(autoreset=True)
 PAST_DAYS = 1
 PAST_HOURS = 24 * PAST_DAYS
+
+BASE_URL = 'http://34.241.87.71:8081/'
+POST_API_KEY = 'AC8tQF4YAqgne8G90PVlWKxUv48veTmpsYOyHUfMpQDRXlkhlJ9Alsp7nzIKd5Dghumy7fTFheCAVggc3MqFbo90h31Uv81bn6XgxLzCMh70lIuXoiRs591HR1ynrKKj'
 
 
 def get_sensor_data_continuously(past_minutes: int = 15):
@@ -59,6 +59,7 @@ def get_sensor_data_continuously(past_minutes: int = 15):
             m4['TSS_alert'] = np.where(np.isnan(m4['TSS']), m4['TSS'] < 20.0,
                                        m4['TSS'] >= 20.0)
             m4.dropna(how='all', inplace=True)
+
             save_pandas_to_csv(m4, out_path="Data/Sensors", csv_name="Aquatroll_alerts.csv")
             save_pandas_to_json(m4, out_path="Data/Sensors", json_name="Aquatroll.json")
             save_df_to_database(df=m4, table_name="Aquatroll_alerts")
@@ -145,8 +146,8 @@ def get_sensor_data_continuously(past_minutes: int = 15):
         pass
 
 
-def get_sensor_data():
-    # # # Teros_12 -> ok
+def get_sensor_data(save_to_db: bool = False):
+    # Teros_12 -> ok
     try:
         print(f"working on {Fore.GREEN}Teros_12")
         m1 = Sensors_Mongo.get_mongo_data('10d60580872b7e0a13ea5b1fe06e36caac95cb0c',
@@ -163,15 +164,21 @@ def get_sensor_data():
             m1['soil-temperature0-C'] = np.where(
                 (m1['soil-temperature0-C'] < -40.) | (m1['soil-temperature0-C'] > 60.0),
                 np.nan, m1['soil-temperature0-C'])
-
-            m1 = rename_pandas_columns(m1, {'soil-bulk-ec0-uS/cm': 'soil-bulk-ec', 'soil-moisture0-%': 'soil-moisture',
+            m1_out = rename_pandas_columns(m1,
+                                           {'soil-bulk-ec0-uS/cm': 'soil-bulk-ec', 'soil-moisture0-%': 'soil-moisture',
                                             'soil-temperature0-C': 'soil-temperature'})
-            m1_out = resample_dataset(m1)
-            m1.dropna(how='all', inplace=True)
+            m1_out = resample_dataset(m1_out)
+            m1_out.dropna(how='all', inplace=True)
+            # print(data)
+            response = push_to_aws(m1_out, "Teros_12")
+            print('push status code', response.status_code)
+            response.raise_for_status()
+            # print(response.content)
+
             save_pandas_to_csv(m1_out, out_path="Data/Sensors", csv_name="Teros_12.csv")
             save_pandas_to_json(m1_out, out_path="Data/Sensors", json_name="Teros_12.json")
-
-            save_df_to_database(df=m1_out, table_name="Teros_12")
+            if save_to_db:
+                save_df_to_database(df=m1_out, table_name="Teros_12")
     except Exception as e:
         print(e)
         pass
@@ -193,47 +200,59 @@ def get_sensor_data():
                                                np.nan, m2['soil-moisture15-%'])
             m2['soil-moisture25-%'] = np.where((m2['soil-moisture25-%'] > 100),
                                                np.nan, m2['soil-moisture25-%'])
-
-            m2 = rename_pandas_columns(m2, {
+            m2_out = rename_pandas_columns(m2, {
                 'soil-temperature15-C': 'soil-temperature15', 'soil-temperature25-C': 'soil-temperature25',
                 'soil-temperature5-C': 'soil-temperature5',
                 'soil-moisture15-%': "soil-moisture15", 'soil-moisture25-%': 'soil-moisture25',
                 'soil-moisture5-%': 'soil-moisture5', 'soil-salinity15-dS/m': 'soil-salinity15',
                 'soil-salinity25-dS/m': 'soil-salinity25', 'soil-salinity5-dS/m': 'soil-salinity5'})
-
-            m2_out = resample_dataset(m2)
+            m2_out = resample_dataset(m2_out)
             m2_out.dropna(how='all', inplace=True)
+            response = push_to_aws(m2_out, "Triscan")
+            print('push status code', response.status_code)
+            response.raise_for_status()
+            # print(response.content)
+
             save_pandas_to_csv(m2_out, out_path="Data/Sensors", csv_name="Triscan.csv")
             save_pandas_to_json(m2_out, out_path="Data/Sensors", json_name="Triscan.json")
-            save_df_to_database(df=m2_out, table_name="Triscan")
-
-        # Scan_chlori
-        print(f"Working on {Fore.GREEN}Scan_chlori")
-        m3 = Sensors_Mongo.get_mongo_data('218603913b6398d27b0b1612e7ee2e2ee3d036a1',
-                                          ['analogInput.2', 'temperatureSensor.1'],
-
-                                          past_hours=PAST_HOURS)
+            if save_to_db:
+                save_df_to_database(df=m2_out, table_name="Triscan")
     except Exception as e:
         print(e)
         pass
+        #
+
+    # Scan_chlori
     try:
+        print(f"Working on {Fore.GREEN}Scan_chlori")
+        m3 = Sensors_Mongo.get_mongo_data('218603913b6398d27b0b1612e7ee2e2ee3d036a1',
+                                          ['analogInput.2', 'temperatureSensor.1'],
+                                          past_hours=PAST_HOURS)
+
         if m3 is not None and isinstance(m3, DataFrame) and not m3.empty:
             m3['analogInput.2'] = np.where((m3['analogInput.2'] < 0) | (m3['analogInput.2'] > 2.0),
                                            np.nan, m3['analogInput.2'])
             m3['temperatureSensor.1'] = np.where((m3['temperatureSensor.1'] < 5.0) | (m3['temperatureSensor.1'] > 45.0),
                                                  np.nan, m3['temperatureSensor.1'])
+            m3_out = rename_pandas_columns(m3,
+                                           {'analogInput.2': "chlorine", 'temperatureSensor.1': 'temperatureSensor'})
+            m3_out = resample_dataset(m3_out)
 
-            m3 = rename_pandas_columns(m3, {'analogInput.2': "chlorine", 'temperatureSensor.1': 'temperatureSensor'})
-            m3_out = resample_dataset(m3)
             m3_out.dropna(how='all', inplace=True)
+            response = push_to_aws(m3_out, "Scan_chlori")
+            print('push status code', response.status_code)
+            response.raise_for_status()
+            # print(response.content)
+
             save_pandas_to_csv(m3_out, out_path="Data/Sensors", csv_name="Scan_chlori.csv")
             save_pandas_to_json(m3_out, out_path="Data/Sensors", json_name="Scan_chlori.json")
-
-            save_df_to_database(df=m3_out, table_name="Scan_chlori")
-    except Exception:
+            if save_to_db:
+                save_df_to_database(df=m3_out, table_name="Scan_chlori")
+    except Exception as e:
+        print(e)
         pass
     #
-    # # Aquatroll(NDVI) -> ok
+    # Aquatroll(NDVI) -> ok
     try:
         print(f"Working on {Fore.GREEN}Aquatroll")
 
@@ -254,14 +273,22 @@ def get_sensor_data():
             m4['Turbidity0-NTU'] = np.where(
                 (m4['Turbidity0-NTU'] < 0.0) | (m4['Turbidity0-NTU'] > 40.0),
                 np.nan, m4['Turbidity0-NTU'])
-            m4 = rename_pandas_columns(m4,
-                                       {'Conductivity0-μS/cm': "Conductivity", 'RDO0-mg/l': 'RDO', 'TSS0-mg/l': 'TSS',
-                                        'Turbidity0-NTU': 'Turbidity'})
-            m4_out = resample_dataset(m4)
+            m4_out = rename_pandas_columns(m4,
+                                           {'Conductivity0-μS/cm': "Conductivity", 'RDO0-mg/l': 'RDO',
+                                            'TSS0-mg/l': 'TSS',
+                                            'Turbidity0-NTU': 'Turbidity'})
+            m4_out = resample_dataset(m4_out)
             m4_out.dropna(how='all', inplace=True)
+
+            response = push_to_aws(m4_out, "Aquatroll")
+            print('push status code', response.status_code)
+            response.raise_for_status()
+            # print(response.content)
+
             save_pandas_to_csv(m4_out, out_path="Data/Sensors", csv_name="Aquatroll.csv")
             save_pandas_to_json(m4_out, out_path="Data/Sensors", json_name="Aquatroll.json")
-            save_df_to_database(df=m4_out, table_name="Aquatroll")
+            if save_to_db:
+                save_df_to_database(df=m4_out, table_name="Aquatroll")
     except Exception as e:
         print(e)
         pass
@@ -303,10 +330,15 @@ def get_sensor_data():
 
             m5_out = resample_dataset(m5)
             m5_out.dropna(how='all', inplace=True)
+            response = push_to_aws(m5_out, "Proteus_Infinite")
+            print('push status code', response.status_code)
+            response.raise_for_status()
+            # print(response.content)
 
             save_pandas_to_csv(m5_out, out_path="Data/Sensors", csv_name="Proteus_infinite.csv")
             save_pandas_to_json(m5_out, out_path="Data/Sensors", json_name="Proteus_infinite.json")
-            save_df_to_database(df=m5_out, table_name="Proteus_infinite")
+            if save_to_db:
+                save_df_to_database(df=m5_out, table_name="Proteus_infinite")
     except Exception as e:
         print(e)
         pass
@@ -360,25 +392,40 @@ def get_sensor_data():
                       'windspeed': "mean", 'atmospheric-pressure': "mean"}
             m7_out = resample_dataset(m7, aggreg=aggreg)
             m7_out.dropna(how='all', inplace=True)
+            response = push_to_aws(m7_out, "ATMOS")
+            print('push status code', response.status_code)
+            response.raise_for_status()
+            # print(response.content)
+
             save_pandas_to_csv(m7_out, out_path="Data/Sensors", csv_name="ATMOS.csv")
             save_pandas_to_json(m7_out, out_path="Data/Sensors", json_name="ATMOS.json")
-            save_df_to_database(df=m7_out, table_name="ATMOS")
-    except Exception:
+            if save_to_db:
+                save_df_to_database(df=m7_out, table_name="ATMOS")
+    except Exception as e:
+        print(e)
         pass
     # ADDvantage
     try:
         print(f"Working on {Fore.GREEN}addvantage")
-        Addvantage.get_new_addvantage_data(save_csv=True, out_data_path="Data/addvantage/result",
-                                           csv_name="new_ADDvantage_data.csv", save_json=True,
-                                           json_name="new_ADDvantage_data.json",
-                                           aggreg={'Wind speed 100 Hz': "mean", 'RH': "mean", 'Air temperature': "mean",
-                                                   'Leaf Wetness': "mean", 'Soil conductivity_25cm': "mean",
-                                                   'Soil conductivity_15cm': "mean", 'Soil conductivity_5cm': "mean",
-                                                   'Soil temperature_25cm': "mean", 'Soil temperature_15cm': "mean",
-                                                   'Soil temperature_5cm': "mean", 'Soil moisture_25cm': "mean",
-                                                   'Soil moisture_15cm': "mean", 'Soil moisture_5cm': "mean",
-                                                   'Precipitation': "sum", 'Pyranometer': "mean"
-                                                   }, past_hours=PAST_HOURS, save_to_db=True)
+        out = Addvantage.get_new_addvantage_data(save_csv=True, out_data_path="Data/addvantage/result",
+                                                 csv_name="new_ADDvantage_data.csv", save_json=True,
+                                                 json_name="new_ADDvantage_data.json",
+                                                 aggreg={'Wind speed 100 Hz': "mean", 'RH': "mean",
+                                                         'Air temperature': "mean",
+                                                         'Leaf Wetness': "mean", 'Soil conductivity_25cm': "mean",
+                                                         'Soil conductivity_15cm': "mean",
+                                                         'Soil conductivity_5cm': "mean",
+                                                         'Soil temperature_25cm': "mean",
+                                                         'Soil temperature_15cm': "mean",
+                                                         'Soil temperature_5cm': "mean", 'Soil moisture_25cm': "mean",
+                                                         'Soil moisture_15cm': "mean", 'Soil moisture_5cm': "mean",
+                                                         'Precipitation': "sum", 'Pyranometer': "mean"
+                                                         }, past_hours=PAST_HOURS, save_to_db=save_to_db)
+        response = push_to_aws(out, "ADDvantage")
+        print('push status code', response.status_code)
+        response.raise_for_status()
+        # print(response.content)
+
     except Exception as e:
         print(e)
         pass
