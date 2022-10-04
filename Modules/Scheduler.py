@@ -35,7 +35,7 @@ def my_schedule(job1, job2, job3, job4):
     trigger_job4 = CronTrigger(
         year="*", month="*", day="*", hour="*", minute="*", timezone="Europe/Athens"
     )
-    scheduler.add_job(job1, trigger=trigger_job1, name="daily pull sensor data", args=[False])
+    scheduler.add_job(job1, trigger=trigger_job1, name="daily pull sensor data", args=[True, True])
     scheduler.add_job(job2, trigger=trigger_job2, name="daily pull openweather data")
     scheduler.add_job(job3, trigger=trigger_job3_a, name="night pull accuweather data")
     scheduler.add_job(job3, trigger=trigger_job3_b, name="day pull accuweather data")

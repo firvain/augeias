@@ -146,7 +146,7 @@ def get_sensor_data_continuously(past_minutes: int = 15):
         pass
 
 
-def get_sensor_data(save_to_db: bool = False):
+def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
     # Teros_12 -> ok
     try:
         print(f"working on {Fore.GREEN}Teros_12")
@@ -170,10 +170,11 @@ def get_sensor_data(save_to_db: bool = False):
             m1_out = resample_dataset(m1_out)
             m1_out.dropna(how='all', inplace=True)
             # print(data)
-            response = push_to_aws(m1_out, "Teros_12")
-            print('push status code', response.status_code)
-            response.raise_for_status()
-            print(response.content)
+            if should_push:
+                response = push_to_aws(m1_out, "Teros_12")
+                print('push status code', response.status_code)
+                response.raise_for_status()
+                print(response.content)
 
             save_pandas_to_csv(m1_out, out_path="Data/Sensors", csv_name="Teros_12.csv")
             save_pandas_to_json(m1_out, out_path="Data/Sensors", json_name="Teros_12.json")
@@ -208,10 +209,11 @@ def get_sensor_data(save_to_db: bool = False):
                 'soil-salinity25-dS/m': 'soil-salinity25', 'soil-salinity5-dS/m': 'soil-salinity5'})
             m2_out = resample_dataset(m2_out)
             m2_out.dropna(how='all', inplace=True)
-            response = push_to_aws(m2_out, "Triscan")
-            print('push status code', response.status_code)
-            response.raise_for_status()
-            print(response.content)
+            if should_push:
+                response = push_to_aws(m2_out, "Triscan")
+                print('push status code', response.status_code)
+                response.raise_for_status()
+                print(response.content)
 
             save_pandas_to_csv(m2_out, out_path="Data/Sensors", csv_name="Triscan.csv")
             save_pandas_to_json(m2_out, out_path="Data/Sensors", json_name="Triscan.json")
@@ -239,10 +241,11 @@ def get_sensor_data(save_to_db: bool = False):
             m3_out = resample_dataset(m3_out)
 
             m3_out.dropna(how='all', inplace=True)
-            response = push_to_aws(m3_out, "Scan_chlori")
-            print('push status code', response.status_code)
-            response.raise_for_status()
-            print(response.content)
+            if should_push:
+                response = push_to_aws(m3_out, "Scan_chlori")
+                print('push status code', response.status_code)
+                response.raise_for_status()
+                print(response.content)
 
             save_pandas_to_csv(m3_out, out_path="Data/Sensors", csv_name="Scan_chlori.csv")
             save_pandas_to_json(m3_out, out_path="Data/Sensors", json_name="Scan_chlori.json")
@@ -279,11 +282,11 @@ def get_sensor_data(save_to_db: bool = False):
                                             'Turbidity0-NTU': 'Turbidity'})
             m4_out = resample_dataset(m4_out)
             m4_out.dropna(how='all', inplace=True)
-
-            response = push_to_aws(m4_out, "Aquatroll")
-            print('push status code', response.status_code)
-            response.raise_for_status()
-            print(response.content)
+            if should_push:
+                response = push_to_aws(m4_out, "Aquatroll")
+                print('push status code', response.status_code)
+                response.raise_for_status()
+                print(response.content)
 
             save_pandas_to_csv(m4_out, out_path="Data/Sensors", csv_name="Aquatroll.csv")
             save_pandas_to_json(m4_out, out_path="Data/Sensors", json_name="Aquatroll.json")
@@ -330,10 +333,11 @@ def get_sensor_data(save_to_db: bool = False):
 
             m5_out = resample_dataset(m5)
             m5_out.dropna(how='all', inplace=True)
-            response = push_to_aws(m5_out, "Proteus_Infinite")
-            print('push status code', response.status_code)
-            response.raise_for_status()
-            print(response.content)
+            if should_push:
+                response = push_to_aws(m5_out, "Proteus_Infinite")
+                print('push status code', response.status_code)
+                response.raise_for_status()
+                print(response.content)
 
             save_pandas_to_csv(m5_out, out_path="Data/Sensors", csv_name="Proteus_infinite.csv")
             save_pandas_to_json(m5_out, out_path="Data/Sensors", json_name="Proteus_infinite.json")
@@ -392,10 +396,11 @@ def get_sensor_data(save_to_db: bool = False):
                       'windspeed': "mean", 'atmospheric-pressure': "mean"}
             m7_out = resample_dataset(m7, aggreg=aggreg)
             m7_out.dropna(how='all', inplace=True)
-            response = push_to_aws(m7_out, "ATMOS")
-            print('push status code', response.status_code)
-            response.raise_for_status()
-            print(response.content)
+            if should_push:
+                response = push_to_aws(m7_out, "ATMOS")
+                print('push status code', response.status_code)
+                response.raise_for_status()
+                print(response.content)
 
             save_pandas_to_csv(m7_out, out_path="Data/Sensors", csv_name="ATMOS.csv")
             save_pandas_to_json(m7_out, out_path="Data/Sensors", json_name="ATMOS.json")
