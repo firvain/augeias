@@ -5,7 +5,7 @@ from pandas import DataFrame, merge, notnull, pivot_table, to_numeric
 from Modules import Addvantage, Sensors_Mongo
 from Modules.Accuweather import get_accuweather_daily
 from Modules.ADTK import calc_anomalies_ADKT
-from Modules.OpenWeather import get_openweather_daily
+from Modules.OpenWeather import get_openweather_daily, load_openweather_from_csv
 from Modules.Scheduler import my_schedule
 from Modules.SensorAnomalyDetection import detect_anomalies
 from Modules.LSTMAnomalyDetection import detect_anomalies_lstm
@@ -477,3 +477,4 @@ if __name__ == '__main__':
     # detect_anomalies_lstm(table_name='Proteus_infinite', train_model=False)
     # detect_anomalies_lstm(table_name='ATMOS', train_model=False)
     # detect_anomalies_lstm(table_name='addvantage', train_model=False)
+    # load_openweather_from_csv(save_to_db=True, csv_path='Data/open_weather_forecast.csv')

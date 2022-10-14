@@ -78,6 +78,7 @@ def load_openweather_from_csv(save_to_db: bool = False, csv_path: str = ''):
         h1 = hourly.filter(regex='_' + str(h) + '_')
         h1.columns = h1.columns.str.lstrip(f'hourly_')
         h1.columns = h1.columns.str.lstrip(f'_{h}_')
+        # print(pd.to_datetime(h1.iloc[1]['dt'], unit='s'))
 
         df2 = pd.concat([df2, h1], axis=0, ignore_index=True)
 
@@ -92,5 +93,7 @@ def load_openweather_from_csv(save_to_db: bool = False, csv_path: str = ''):
                  'wind_speed', 'wind_deg',
                  'wind_gust'])
     df2.set_index('timestamp', inplace=True)
+    df2 = df2[~df2.index.duplicated(keep='first')]
+    df2.to_csv('old2.csv')
     if save_to_db and not df.empty:
         save_df_to_database(df=df2, table_name="openweather_old")
