@@ -8,6 +8,7 @@ import requests
 from colorama import init
 from dotenv import load_dotenv
 import pandas as pd
+from natsort import natsorted
 
 from Utils.Database import save_df_to_database
 
