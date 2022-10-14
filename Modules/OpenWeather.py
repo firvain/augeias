@@ -55,3 +55,41 @@ def get_openweather_daily(save_to_db: bool = True):
             raise Exception('no data returned')
     except Exception as e:
         print(e)
+
+
+def load_openweather_from_csv(save_to_db: bool = False, csv_path: str = ''):
+    df = pd.read_csv(csv_path)
+
+    hourly = df.filter(regex='hourly')
+
+    hourly = hourly.reindex(natsorted(hourly.columns), axis=1)
+
+    hourly = hourly[hourly.columns.drop(list(hourly.filter(regex='feels_like')))]
+    hourly = hourly[hourly.columns.drop(list(hourly.filter(regex='pop')))]
+
+    hourly = hourly[hourly.columns.drop(list(hourly.filter(regex='weather_0_id')))]
+    hourly = hourly[hourly.columns.drop(list(hourly.filter(regex='weather_1_id')))]
+
+    col_names = ['clouds', 'dew_point', 'dt', 'humidity', 'pressure', 'rain_1h', 'snow_1h', 'temp', 'uvi', 'visibility',
+                 'wind_deg', 'wind_gust', 'wind_speed']
+    df2 = pd.DataFrame(columns=col_names)
+    for h in range(48):
+        h1 = hourly.filter(regex='_' + str(h) + '_')
+        h1.columns = h1.columns.str.lstrip(f'hourly_')
+        h1.columns = h1.columns.str.lstrip(f'_{h}_')
+
+        df2 = pd.concat([df2, h1], axis=0, ignore_index=True)
+
+    df2['timestamp'] = pd.to_datetime(df2['dt'], unit='s')
+    df2.timestamp = df2.timestamp.dt.tz_localize('UTC')
+    df2.drop(['dt'], inplace=True, axis=1)
+    # df2['precipitation'] = df2['rain_1h'].fillna(0) + df2['snow_1h'].fillna(0)
+    df2.drop(['rain_1h'], inplace=True, axis=1)
+    df2.drop(['snow_1h'], inplace=True, axis=1)
+    df2.reindex(['timestamp', 'temp', 'pressure', 'humidity', 'dew_point', 'uvi', 'clouds',
+                 'visibility',
+                 'wind_speed', 'wind_deg',
+                 'wind_gust'])
+    df2.set_index('timestamp', inplace=True)
+    if save_to_db and not df.empty:
+        save_df_to_database(df=df2, table_name="openweather_old")
