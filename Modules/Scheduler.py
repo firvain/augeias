@@ -50,6 +50,7 @@ def my_schedule(job1, job2, job3, job4):
         # Not strictly necessary if daemonic mode is enabled but should be done if possible
         scheduler.shutdown()
 
+
 # def tick():
 #     print('Tick! The time is: %s' % datetime.now())
 
@@ -68,3 +69,20 @@ def my_schedule(job1, job2, job3, job4):
 #     except (KeyboardInterrupt, SystemExit):
 #         # Not strictly necessary if daemonic mode is enabled but should be done if possible
 #         scheduler.shutdown()
+def my_schedule_test(job4):
+    scheduler = BackgroundScheduler({'apscheduler.timezone': 'Europe/Athens'})
+
+    trigger_job4 = CronTrigger(
+        year="*", month="*", day="*", hour="*", minute="*/15", timezone="Europe/Athens"
+    )
+
+    scheduler.add_job(job4, trigger=trigger_job4, name="continuously pull sensor data")
+    scheduler.start()
+
+    try:
+        # This is here to simulate application activity (which keeps the main thread alive).
+        while True:
+            time.sleep(2)
+    except (KeyboardInterrupt, SystemExit):
+        # Not strictly necessary if daemonic mode is enabled but should be done if possible
+        scheduler.shutdown()

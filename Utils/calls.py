@@ -14,3 +14,13 @@ def push_to_aws(df, table_name: str):
     print(data.to_json(orient='records'))
     return requests.post(headers={'apikey': POST_API_KEY},
                          url=url, data=data.to_json(orient='records'))
+
+
+def push_to_aws_last_row(df, table_name: str):
+    data = df.copy().reset_index()
+    data['timestamp'] = data['timestamp'].astype(str)
+
+    url = f'{BASE_URL}{table_name}'
+
+    return requests.post(headers={'apikey': POST_API_KEY},
+                         url=url, data=data.iloc[-1].to_json())

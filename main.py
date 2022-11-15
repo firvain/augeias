@@ -6,10 +6,10 @@ from Modules import Addvantage, Sensors_Mongo
 from Modules.Accuweather import get_accuweather_daily
 from Modules.ADTK import calc_anomalies_ADKT
 from Modules.OpenWeather import get_openweather_daily, load_openweather_from_csv
-from Modules.Scheduler import my_schedule
+from Modules.Scheduler import my_schedule, my_schedule_test
 from Modules.SensorAnomalyDetection import detect_anomalies
 from Modules.LSTMAnomalyDetection import detect_anomalies_lstm
-from Utils.calls import push_to_aws
+from Utils.calls import push_to_aws, push_to_aws_last_row
 from Utils.Database import save_df_to_database
 # Press the green button in the gutter to run the script.
 from Utils.Pandas_utils import rename_pandas_columns, resample_dataset, save_pandas_to_csv, save_pandas_to_json
@@ -26,46 +26,55 @@ POST_API_KEY = 'AC8tQF4YAqgne8G90PVlWKxUv48veTmpsYOyHUfMpQDRXlkhlJ9Alsp7nzIKd5Dg
 
 def get_sensor_data_continuously(past_minutes: int = 15):
     # Aquatroll(NDVI) -> ok
-    try:
-        print(f"Working on {Fore.GREEN}Aquatroll")
-
-        m4 = Sensors_Mongo.get_mongo_datα_minutely('323c14d3d8ad3e919ce9699403cbc0ca2ead8c5b',
-                                                   ['Conductivity0-μS/cm', 'RDO0-mg/l', 'TSS0-mg/l', 'Turbidity0-NTU'],
-                                                   past_minutes=past_minutes)
-        print(m4)
-        if m4 is not None and isinstance(m4, DataFrame) and not m4.empty:
-            m4['Conductivity0-μS/cm'] = np.where(
-                (m4['Conductivity0-μS/cm'] < 0.0) | (m4['Conductivity0-μS/cm'] > 350000.0),
-                np.nan, m4['Conductivity0-μS/cm'])
-            m4['RDO0-mg/l'] = np.where(
-                (m4['RDO0-mg/l'] < 0.0) | (m4['RDO0-mg/l'] > 60.0),
-                np.nan, m4['RDO0-mg/l'])
-            m4['TSS0-mg/l'] = np.where(
-                (m4['TSS0-mg/l'] < 0.0) | (m4['TSS0-mg/l'] > 1500.0),
-                np.nan, m4['TSS0-mg/l'])
-            m4['Turbidity0-NTU'] = np.where(
-                (m4['Turbidity0-NTU'] < 0.0) | (m4['Turbidity0-NTU'] > 40.0),
-                np.nan, m4['Turbidity0-NTU'])
-            m4 = rename_pandas_columns(m4,
-                                       {'Conductivity0-μS/cm': "Conductivity", 'RDO0-mg/l': 'RDO', 'TSS0-mg/l': 'TSS',
-                                        'Turbidity0-NTU': 'Turbidity'})
-            m4.dropna(how='all', inplace=True)
-            # ALERTS!!!
-            m4['Conductivity_alert'] = np.nan
-            m4['Conductivity_alert'] = np.where(np.isnan(m4['Conductivity']), (m4['Conductivity'] * .001) <= 3.0,
-                                                (m4['Conductivity'] * .001) > 3.0)
-            m4['TSS_alert'] = np.nan
-
-            m4['TSS_alert'] = np.where(np.isnan(m4['TSS']), m4['TSS'] < 20.0,
-                                       m4['TSS'] >= 20.0)
-            m4.dropna(how='all', inplace=True)
-
-            save_pandas_to_csv(m4, out_path="Data/Sensors", csv_name="Aquatroll_alerts.csv")
-            save_pandas_to_json(m4, out_path="Data/Sensors", json_name="Aquatroll.json")
-            save_df_to_database(df=m4, table_name="Aquatroll_alerts")
-    except Exception as e:
-        print(e)
-        pass
+    # try:
+    #     print(f"Working on {Fore.GREEN}Aquatroll")
+    #
+    #     m4 = Sensors_Mongo.get_mongo_datα_minutely('323c14d3d8ad3e919ce9699403cbc0ca2ead8c5b',
+    #                                                ['Conductivity0-μS/cm', 'RDO0-mg/l', 'TSS0-mg/l', 'Turbidity0-NTU'],
+    #                                                past_minutes=past_minutes)
+    #
+    #     if m4 is not None and isinstance(m4, DataFrame) and not m4.empty:
+    #         m4['Conductivity0-μS/cm'] = np.where(
+    #             (m4['Conductivity0-μS/cm'] < 0.0) | (m4['Conductivity0-μS/cm'] > 350000.0),
+    #             np.nan, m4['Conductivity0-μS/cm'])
+    #         m4['RDO0-mg/l'] = np.where(
+    #             (m4['RDO0-mg/l'] < 0.0) | (m4['RDO0-mg/l'] > 60.0),
+    #             np.nan, m4['RDO0-mg/l'])
+    #         m4['TSS0-mg/l'] = np.where(
+    #             (m4['TSS0-mg/l'] < 0.0) | (m4['TSS0-mg/l'] > 1500.0),
+    #             np.nan, m4['TSS0-mg/l'])
+    #         m4['Turbidity0-NTU'] = np.where(
+    #             (m4['Turbidity0-NTU'] < 0.0) | (m4['Turbidity0-NTU'] > 40.0),
+    #             np.nan, m4['Turbidity0-NTU'])
+    #         m4 = rename_pandas_columns(m4,
+    #                                    {'Conductivity0-μS/cm': "Conductivity", 'RDO0-mg/l': 'RDO', 'TSS0-mg/l': 'TSS',
+    #                                     'Turbidity0-NTU': 'Turbidity'})
+    #         m4.dropna(how='all', inplace=True)
+    #         # ALERTS!!!
+    #         m4['Conductivity_alert'] = np.nan
+    #         m4['Conductivity_alert'] = np.where(np.isnan(m4['Conductivity']), (m4['Conductivity'] * .001) <= 3.0,
+    #                                             (m4['Conductivity'] * .001) > 3.0)
+    #         m4['TSS_alert'] = np.nan
+    #
+    #         m4['TSS_alert'] = np.where(np.isnan(m4['TSS']), m4['TSS'] < 20.0,
+    #                                    m4['TSS'] >= 20.0)
+    #         m4.dropna(how='all', inplace=True)
+    #
+    #         send_df = m4[['Conductivity_alert', 'TSS_alert']].copy()
+    #         send_df.rename(columns={'Conductivity_alert': 'conductivity_alert', 'TSS_alert': 'tss_alert'}, inplace=True)
+    #         send_df['sensor_name'] = 'aqua_troll'
+    #         print(send_df.columns)
+    #
+    #         response = push_to_aws_last_row(send_df, "ConductivityAlert")
+    #         print('push status code', response.status_code)
+    #         response.raise_for_status()
+    #         print(response.content)
+    #         # save_pandas_to_csv(m4, out_path="Data/Sensors", csv_name="Aquatroll_alerts.csv")
+    #         # save_pandas_to_json(m4, out_path="Data/Sensors", json_name="Aquatroll.json")
+    #         # save_df_to_database(df=m4, table_name="Aquatroll_alerts")
+    # except Exception as e:
+    #     print(e)
+    #     pass
     # Proteus_infinite
     try:
         print(f"Working on {Fore.GREEN}Proteus_infinite")
@@ -138,6 +147,13 @@ def get_sensor_data_continuously(past_minutes: int = 15):
 
             m5.dropna(how='all', inplace=True)
 
+            send_df = m5[['total_coli_alert', 'COD_alert', 'BOD_alert', 'pH_alert']].copy()
+            send_df.rename(columns={'COD_alert': 'cod_alert', 'BOD_alert': 'bod_alert'}, inplace=True)
+            send_df['sensor_name'] = 'proteus_infinite'
+            response = push_to_aws_last_row(send_df, "TotalColiAlert")
+            print('push status code', response.status_code)
+            response.raise_for_status()
+            print(response.content)
             save_pandas_to_csv(m5, out_path="Data/Sensors", csv_name="Proteus_infinite_alerts.csv")
             save_pandas_to_json(m5, out_path="Data/Sensors", json_name="Proteus_infinite.json")
             save_df_to_database(df=m5, table_name="Proteus_infinite_alerts")
@@ -455,6 +471,13 @@ if __name__ == '__main__':
     # openweather_daily = get_openweather_daily(save_to_db=True)
     # get_accuweather_daily(save_to_db=True)
     my_schedule(get_sensor_data, get_openweather_daily, get_accuweather_daily, get_sensor_data_continuously)
+    # my_schedule_test(get_sensor_data_continuously)
+    # a = Sensors_Mongo.get_users_collections()
+    #
+    # for q in a:
+    #     q = q[q.columns.intersection(['Conductivity0-μS/cm', 'RDO0-mg/l', 'TSS0-mg/l', 'Turbidity0-NTU'])]
+    #     if 'Conductivity0-μS/cm'  in q.columns.tolist():
+
     # pull_continuously(get_sensor_data_continusly)
 
     # detect_anomalies('Teros_12')
