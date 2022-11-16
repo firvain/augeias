@@ -59,19 +59,20 @@ def get_sensor_data_continuously(past_minutes: int = 15):
             m4['TSS_alert'] = np.where(np.isnan(m4['TSS']), m4['TSS'] < 20.0,
                                        m4['TSS'] >= 20.0)
             m4.dropna(how='all', inplace=True)
+            save_pandas_to_csv(m4, out_path="Data/Sensors", csv_name="Aquatroll_alerts.csv")
+            save_pandas_to_json(m4, out_path="Data/Sensors", json_name="Aquatroll.json")
+            save_df_to_database(df=m4, table_name="Aquatroll_alerts")
 
+            # send alert to AWS
             send_df = m4[['Conductivity_alert', 'TSS_alert']].copy()
             send_df.rename(columns={'Conductivity_alert': 'conductivity_alert', 'TSS_alert': 'tss_alert'}, inplace=True)
             send_df['sensor_name'] = 'aqua_troll'
-            print(send_df.columns)
 
             response = push_to_aws_last_row(send_df, "ConductivityAlert")
             print('push status code', response.status_code)
             response.raise_for_status()
             print(response.content)
-            # save_pandas_to_csv(m4, out_path="Data/Sensors", csv_name="Aquatroll_alerts.csv")
-            # save_pandas_to_json(m4, out_path="Data/Sensors", json_name="Aquatroll.json")
-            # save_df_to_database(df=m4, table_name="Aquatroll_alerts")
+
     except Exception as e:
         print(e)
         pass
@@ -146,7 +147,10 @@ def get_sensor_data_continuously(past_minutes: int = 15):
                                       )
 
             m5.dropna(how='all', inplace=True)
-
+            save_pandas_to_csv(m5, out_path="Data/Sensors", csv_name="Proteus_infinite_alerts.csv")
+            save_pandas_to_json(m5, out_path="Data/Sensors", json_name="Proteus_infinite.json")
+            save_df_to_database(df=m5, table_name="Proteus_infinite_alerts")
+            # send alert to AWS
             send_df = m5[['total_coli_alert', 'COD_alert', 'BOD_alert', 'pH_alert']].copy()
             send_df.rename(columns={'COD_alert': 'cod_alert', 'BOD_alert': 'bod_alert'}, inplace=True)
             send_df['sensor_name'] = 'proteus_infinite'
@@ -154,9 +158,7 @@ def get_sensor_data_continuously(past_minutes: int = 15):
             print('push status code', response.status_code)
             response.raise_for_status()
             print(response.content)
-            save_pandas_to_csv(m5, out_path="Data/Sensors", csv_name="Proteus_infinite_alerts.csv")
-            save_pandas_to_json(m5, out_path="Data/Sensors", json_name="Proteus_infinite.json")
-            save_df_to_database(df=m5, table_name="Proteus_infinite_alerts")
+
     except Exception as e:
         print(e)
         pass
