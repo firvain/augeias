@@ -229,10 +229,12 @@ def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name="", save_
     data['Soil moisture_5cm'] = np.where(
         (data['Soil moisture_5cm'] < 0.0) | (data['Soil moisture_5cm'] > 100.0),
         np.nan, data['Soil moisture_5cm'])
+    data['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
     if drop_nan:
         data.dropna(how='all', inplace=True)
     df_out = resample_dataset(data, aggreg)
-
+    df_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
+    print(df_out)
     if save_csv:
         save_pandas_to_csv(df_out, out_path=out_data_path, csv_name=csv_name)
     if save_json:

@@ -58,7 +58,9 @@ def get_sensor_data_continuously(past_minutes: int = 15):
 
             m4['TSS_alert'] = np.where(np.isnan(m4['TSS']), m4['TSS'] < 20.0,
                                        m4['TSS'] >= 20.0)
+            m4['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             m4.dropna(how='all', inplace=True)
+            # print(m4)
             save_pandas_to_csv(m4, out_path="Data/Sensors", csv_name="Aquatroll_alerts.csv")
             save_pandas_to_json(m4, out_path="Data/Sensors", json_name="Aquatroll.json")
             save_df_to_database(df=m4, table_name="Aquatroll_alerts")
@@ -67,11 +69,12 @@ def get_sensor_data_continuously(past_minutes: int = 15):
             send_df = m4[['Conductivity_alert', 'TSS_alert']].copy()
             send_df.rename(columns={'Conductivity_alert': 'conductivity_alert', 'TSS_alert': 'tss_alert'}, inplace=True)
             send_df['sensor_name'] = 'aqua_troll'
-
+            send_df['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
+            print(send_df)
             response = push_to_aws_last_row(send_df, "ConductivityAlert")
             print('push status code', response.status_code)
             response.raise_for_status()
-            print(response.content)
+            # print(response.content)
 
     except Exception as e:
         print(e)
@@ -83,7 +86,7 @@ def get_sensor_data_continuously(past_minutes: int = 15):
         m5 = Sensors_Mongo.get_mongo_datα_minutely('59a85c7da55bf1bf6e784675c060a2e71ee2373a',
                                                    ['channel', 'sign', 'value'],
                                                    past_minutes=past_minutes)
-
+        print(m5)
         if m5 is not None and isinstance(m5, DataFrame) and not m5.empty:
             m5 = m5.replace('--------', np.nan)
             m5['value'] = to_numeric(m5["value"])
@@ -145,8 +148,9 @@ def get_sensor_data_continuously(past_minutes: int = 15):
             m5['pH_alert'] = np.where(np.isnan(m5['pH']), (m5['pH'] <= 8.5) & (m5['pH'] >= 6.5),
                                       (m5['pH'] > 8.5) | (m5['pH'] < 6.5),
                                       )
-
+            m5['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             m5.dropna(how='all', inplace=True)
+
             save_pandas_to_csv(m5, out_path="Data/Sensors", csv_name="Proteus_infinite_alerts.csv")
             save_pandas_to_json(m5, out_path="Data/Sensors", json_name="Proteus_infinite.json")
             save_df_to_database(df=m5, table_name="Proteus_infinite_alerts")
@@ -154,6 +158,7 @@ def get_sensor_data_continuously(past_minutes: int = 15):
             send_df = m5[['total_coli_alert', 'COD_alert', 'BOD_alert', 'pH_alert']].copy()
             send_df.rename(columns={'COD_alert': 'cod_alert', 'BOD_alert': 'bod_alert'}, inplace=True)
             send_df['sensor_name'] = 'proteus_infinite'
+            send_df['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             response = push_to_aws_last_row(send_df, "TotalColiAlert")
             print('push status code', response.status_code)
             response.raise_for_status()
@@ -186,6 +191,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
                                            {'soil-bulk-ec0-uS/cm': 'soil-bulk-ec', 'soil-moisture0-%': 'soil-moisture',
                                             'soil-temperature0-C': 'soil-temperature'})
             m1_out = resample_dataset(m1_out)
+            m1_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             m1_out.dropna(how='all', inplace=True)
             # print(data)
             if should_push:
@@ -226,6 +232,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
                 'soil-moisture5-%': 'soil-moisture5', 'soil-salinity15-dS/m': 'soil-salinity15',
                 'soil-salinity25-dS/m': 'soil-salinity25', 'soil-salinity5-dS/m': 'soil-salinity5'})
             m2_out = resample_dataset(m2_out)
+            m2_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             m2_out.dropna(how='all', inplace=True)
             if should_push:
                 response = push_to_aws(m2_out, "Triscan")
@@ -236,6 +243,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
             save_pandas_to_csv(m2_out, out_path="Data/Sensors", csv_name="Triscan.csv")
             save_pandas_to_json(m2_out, out_path="Data/Sensors", json_name="Triscan.json")
             if save_to_db:
+                m2_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
                 save_df_to_database(df=m2_out, table_name="Triscan")
     except Exception as e:
         print(e)
@@ -257,7 +265,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
             m3_out = rename_pandas_columns(m3,
                                            {'analogInput.2': "chlorine", 'temperatureSensor.1': 'temperatureSensor'})
             m3_out = resample_dataset(m3_out)
-
+            m3_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             m3_out.dropna(how='all', inplace=True)
             if should_push:
                 response = push_to_aws(m3_out, "Scan_chlori")
@@ -299,6 +307,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
                                             'TSS0-mg/l': 'TSS',
                                             'Turbidity0-NTU': 'Turbidity'})
             m4_out = resample_dataset(m4_out)
+            m4_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             m4_out.dropna(how='all', inplace=True)
             if should_push:
                 response = push_to_aws(m4_out, "Aquatroll")
@@ -320,6 +329,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
         m5 = Sensors_Mongo.get_mongo_data('59a85c7da55bf1bf6e784675c060a2e71ee2373a',
                                           ['channel', 'sign', 'value'],
                                           past_hours=PAST_HOURS)
+        print(m5)
         if m5 is not None and isinstance(m5, DataFrame) and not m5.empty:
             m5 = m5.replace('--------', np.nan)
             m5['value'] = to_numeric(m5["value"])
@@ -350,7 +360,9 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
                 np.nan, m5['NO3'])
 
             m5_out = resample_dataset(m5)
+            m5_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             m5_out.dropna(how='all', inplace=True)
+            print(m5_out)
             if should_push:
                 response = push_to_aws(m5_out, "Proteus_Infinite")
                 print('push status code', response.status_code)
@@ -364,6 +376,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
     except Exception as e:
         print(e)
         pass
+
     # ATMOS
     try:
         print(f"Working on {Fore.GREEN}ATMOS")
@@ -413,7 +426,10 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
                       'wind-direction': "mean",
                       'windspeed': "mean", 'atmospheric-pressure': "mean"}
             m7_out = resample_dataset(m7, aggreg=aggreg)
+            m7_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
+            print(m7_out)
             m7_out.dropna(how='all', inplace=True)
+
             if should_push:
                 response = push_to_aws(m7_out, "ATMOS")
                 print('push status code', response.status_code)
@@ -444,6 +460,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
                                                          'Soil moisture_15cm': "mean", 'Soil moisture_5cm': "mean",
                                                          'Precipitation': "sum", 'Pyranometer': "mean"
                                                          }, past_hours=PAST_HOURS, save_to_db=save_to_db)
+
         response = push_to_aws(out, "ADDvantage")
         print('push status code', response.status_code)
         response.raise_for_status()
@@ -472,34 +489,36 @@ if __name__ == '__main__':
     # get_sensor_data()
     # openweather_daily = get_openweather_daily(save_to_db=True)
     # get_accuweather_daily(save_to_db=True)
+    # get_sensor_data(save_to_db=True)
+
     my_schedule(get_sensor_data, get_openweather_daily, get_accuweather_daily, get_sensor_data_continuously)
-    # my_schedule_test(get_sensor_data_continuously)
-    # a = Sensors_Mongo.get_users_collections()
-    #
-    # for q in a:
-    #     q = q[q.columns.intersection(['Conductivity0-μS/cm', 'RDO0-mg/l', 'TSS0-mg/l', 'Turbidity0-NTU'])]
-    #     if 'Conductivity0-μS/cm'  in q.columns.tolist():
+# my_schedule_test(get_sensor_data_continuously)
+# a = Sensors_Mongo.get_users_collections()
+#
+# for q in a:
+#     q = q[q.columns.intersection(['Conductivity0-μS/cm', 'RDO0-mg/l', 'TSS0-mg/l', 'Turbidity0-NTU'])]
+#     if 'Conductivity0-μS/cm'  in q.columns.tolist():
 
-    # pull_continuously(get_sensor_data_continusly)
+# pull_continuously(get_sensor_data_continusly)
 
-    # detect_anomalies('Teros_12')
-    # detect_anomalies('Triscan')
-    # detect_anomalies('Scan_chlori')
-    # detect_anomalies('Aquatroll')
-    # detect_anomalies('Proteus_infinite')
-    # detect_anomalies('ATMOS')
-    # sensor_list = ['addvantage', 'Teros_12', 'Triscan', 'Scan_chlori', 'Aquatroll', 'Proteus_infinite', 'ATMOS']
-    # # sensor_list = ['addvantage']
-    # for sensor in sensor_list:
-    #     calc_anomalies_ADKT(out_path='Data/Sensors/Anomalies', table_name=sensor)
-    # Rest.test()
+# detect_anomalies('Teros_12')
+# detect_anomalies('Triscan')
+# detect_anomalies('Scan_chlori')
+# detect_anomalies('Aquatroll')
+# detect_anomalies('Proteus_infinite')
+# detect_anomalies('ATMOS')
+# sensor_list = ['addvantage', 'Teros_12', 'Triscan', 'Scan_chlori', 'Aquatroll', 'Proteus_infinite', 'ATMOS']
+# # sensor_list = ['addvantage']
+# for sensor in sensor_list:
+#     calc_anomalies_ADKT(out_path='Data/Sensors/Anomalies', table_name=sensor)
+# Rest.test()
 
-    # LSTM Anomaly detection
-    # detect_anomalies_lstm(table_name='Teros_12', train_model=False)
-    # detect_anomalies_lstm(table_name='Triscan', train_model=False)
-    # detect_anomalies_lstm(table_name='Scan_chlori', train_model=False)
-    # detect_anomalies_lstm(table_name='Aquatroll', train_model=False)
-    # detect_anomalies_lstm(table_name='Proteus_infinite', train_model=False)
-    # detect_anomalies_lstm(table_name='ATMOS', train_model=False)
-    # detect_anomalies_lstm(table_name='addvantage', train_model=False)
-    # load_openweather_from_csv(save_to_db=True, csv_path='Data/open_weather_forecast.csv')
+# LSTM Anomaly detection
+# detect_anomalies_lstm(table_name='Teros_12', train_model=False)
+# detect_anomalies_lstm(table_name='Triscan', train_model=False)
+# detect_anomalies_lstm(table_name='Scan_chlori', train_model=False)
+# detect_anomalies_lstm(table_name='Aquatroll', train_model=False)
+# detect_anomalies_lstm(table_name='Proteus_infinite', train_model=False)
+# detect_anomalies_lstm(table_name='ATMOS', train_model=False)
+# detect_anomalies_lstm(table_name='addvantage', train_model=False)
+# load_openweather_from_csv(save_to_db=True, csv_path='Data/open_weather_forecast.csv')

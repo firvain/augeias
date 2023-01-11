@@ -73,7 +73,7 @@ def my_schedule_test(job4):
     scheduler = BackgroundScheduler({'apscheduler.timezone': 'Europe/Athens'})
 
     trigger_job4 = CronTrigger(
-        year="*", month="*", day="*", hour="*", minute="*/15", timezone="Europe/Athens"
+        year="*", month="*", day="*", hour="*", minute="*/2", timezone="Europe/Athens"
     )
 
     scheduler.add_job(job4, trigger=trigger_job4, name="continuously pull sensor data")
