@@ -106,9 +106,10 @@ def get_config(session_id):
 
 def get_addvantage_data_from_server(session_id, sensor_id, past_hours=24):
     slots = int(past_hours * 60 / 5)
-    current_datetime = to_datetime('today').normalize()
+    current_datetime = to_datetime('today')
     current_minus = current_datetime - timedelta(hours=past_hours)
     before_datetime = current_minus.replace(microsecond=0)
+    print(f"before_datetime: {before_datetime}")
     response = requests.get(
         f"{base_url}function=getdata&session-id={session_id}&id={sensor_id}&date={before_datetime.strftime('%Y%m%dT%H:%M:%S')}&slots={slots}&cache=y&mode=t")
     json_dict = xmltodict.parse(response.content)
@@ -234,7 +235,7 @@ def get_new_addvantage_data(save_csv=False, out_data_path="", csv_name="", save_
         data.dropna(how='all', inplace=True)
     df_out = resample_dataset(data, aggreg)
     df_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
-    print(df_out)
+
     if save_csv:
         save_pandas_to_csv(df_out, out_path=out_data_path, csv_name=csv_name)
     if save_json:

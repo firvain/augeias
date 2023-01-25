@@ -460,7 +460,11 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
                                                          'Soil moisture_15cm': "mean", 'Soil moisture_5cm': "mean",
                                                          'Precipitation': "sum", 'Pyranometer': "mean"
                                                          }, past_hours=PAST_HOURS, save_to_db=save_to_db)
-
+        print('-' * 100)
+        print("addvantage to save")
+        print(out)
+        print(out)
+        print('-' * 100)
         response = push_to_aws(out, "ADDvantage")
         print('push status code', response.status_code)
         response.raise_for_status()
