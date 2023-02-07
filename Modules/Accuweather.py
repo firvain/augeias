@@ -2,11 +2,11 @@ import json
 import os
 from datetime import datetime
 
+import pandas as pd
 import pytz
 import requests
 from colorama import init
 from dotenv import load_dotenv
-import pandas as pd
 
 from Utils.Database import save_df_to_database
 

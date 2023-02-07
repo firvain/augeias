@@ -1,11 +1,9 @@
 import logging
 import time
-from datetime import datetime
 
-from apscheduler.triggers.cron import CronTrigger
-
-from colorama import init
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from colorama import init
 
 logname = 'scheduler.log'
 logging.basicConfig(filename=logname,

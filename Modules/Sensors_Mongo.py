@@ -1,15 +1,15 @@
 import json
 import os
 from datetime import datetime, timedelta
-import pytz
-from dotenv import load_dotenv
-from pandas import DataFrame
-import pymongo
 
-# Use load_env to trace the path of .env:
-from pandas import json_normalize
+import pymongo
+import pytz
 from colorama import Fore
 from colorama import init
+from dotenv import load_dotenv
+from pandas import DataFrame
+# Use load_env to trace the path of .env:
+from pandas import json_normalize
 
 init(autoreset=True)
 load_dotenv('.env')

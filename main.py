@@ -1,20 +1,16 @@
 import numpy as np
-import pandas as pd
-from pandas import DataFrame, merge, notnull, pivot_table, to_numeric
+from colorama import Fore
+from colorama import init
+from pandas import DataFrame, notnull, pivot_table, to_numeric
 
 from Modules import Addvantage, Sensors_Mongo
 from Modules.Accuweather import get_accuweather_daily
-from Modules.ADTK import calc_anomalies_ADKT
-from Modules.OpenWeather import get_openweather_daily, load_openweather_from_csv
-from Modules.Scheduler import my_schedule, my_schedule_test
-from Modules.SensorAnomalyDetection import detect_anomalies
-from Modules.LSTMAnomalyDetection import detect_anomalies_lstm
-from Utils.calls import push_to_aws, push_to_aws_last_row
+from Modules.OpenWeather import get_openweather_daily
+from Modules.Scheduler import my_schedule
 from Utils.Database import save_df_to_database
 # Press the green button in the gutter to run the script.
 from Utils.Pandas_utils import rename_pandas_columns, resample_dataset, save_pandas_to_csv, save_pandas_to_json
-from colorama import Fore
-from colorama import init
+from Utils.calls import push_to_aws, push_to_aws_last_row
 
 init(autoreset=True)
 PAST_DAYS = 1
@@ -476,53 +472,4 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
 
 
 if __name__ == '__main__':
-    # Visualize.vis_data('./Data/weather_influx_tables/', 'weather.csv', 'weather.png', 'time',
-    #                    ['rain', 'temperature', 'wind_speed'])
-    # Visualize.vis_data('./Data/weather_influx_tables/', 'accu_diffs.csv', 'accu_diffs.png', 'time')
-    # Visualize.vis_data('./Data/weather_influx_tables/', 'wunder_diffs.csv', 'wunder_diffs.png', 'time')
-
-    # Visualize.compare_dfs('./Data/weather_influx_tables/', 'accu_diffs.csv', 'wunder_diffs.csv', 'average_accuracy')
-    # TimeSeriesAnalysis.check_seasonality('./Data/weather_influx_tables/', 'accu_diffs.csv')
-    # See PyCharm help at https://www.jetbrains.com/help/pycharm/
-
-    # Addvantage -> ok
-    # Addvantage.addvantage_from_csv("Data/addvantage", "values-addvantage.csv", save_csv=True,
-    #                                out_data_path="Data/addvantage/result",
-    #                                csv_name="addvantage.csv", save_to_db=False, db_mode='replace', plot=True)
-    #
-    # get_sensor_data()
-    # openweather_daily = get_openweather_daily(save_to_db=True)
-    # get_accuweather_daily(save_to_db=True)
-    # get_sensor_data(save_to_db=True)
-
     my_schedule(get_sensor_data, get_openweather_daily, get_accuweather_daily, get_sensor_data_continuously)
-# my_schedule_test(get_sensor_data_continuously)
-# a = Sensors_Mongo.get_users_collections()
-#
-# for q in a:
-#     q = q[q.columns.intersection(['Conductivity0-μS/cm', 'RDO0-mg/l', 'TSS0-mg/l', 'Turbidity0-NTU'])]
-#     if 'Conductivity0-μS/cm'  in q.columns.tolist():
-
-# pull_continuously(get_sensor_data_continusly)
-
-# detect_anomalies('Teros_12')
-# detect_anomalies('Triscan')
-# detect_anomalies('Scan_chlori')
-# detect_anomalies('Aquatroll')
-# detect_anomalies('Proteus_infinite')
-# detect_anomalies('ATMOS')
-# sensor_list = ['addvantage', 'Teros_12', 'Triscan', 'Scan_chlori', 'Aquatroll', 'Proteus_infinite', 'ATMOS']
-# # sensor_list = ['addvantage']
-# for sensor in sensor_list:
-#     calc_anomalies_ADKT(out_path='Data/Sensors/Anomalies', table_name=sensor)
-# Rest.test()
-
-# LSTM Anomaly detection
-# detect_anomalies_lstm(table_name='Teros_12', train_model=False)
-# detect_anomalies_lstm(table_name='Triscan', train_model=False)
-# detect_anomalies_lstm(table_name='Scan_chlori', train_model=False)
-# detect_anomalies_lstm(table_name='Aquatroll', train_model=False)
-# detect_anomalies_lstm(table_name='Proteus_infinite', train_model=False)
-# detect_anomalies_lstm(table_name='ATMOS', train_model=False)
-# detect_anomalies_lstm(table_name='addvantage', train_model=False)
-# load_openweather_from_csv(save_to_db=True, csv_path='Data/open_weather_forecast.csv')

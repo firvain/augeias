@@ -16,7 +16,7 @@ from colorama import init
 from dotenv import load_dotenv
 from pandas import DataFrame, to_datetime
 
-from Utils.Database import save_df_to_database, upsert_df
+from Utils.Database import save_df_to_database
 # Use load_env to trace the path of .env:
 from Utils.Pandas_utils import resample_dataset, save_pandas_to_csv, save_pandas_to_json
 
@@ -81,8 +81,6 @@ def addvantage_from_csv(in_data_path, file, save_csv=False, out_data_path="", cs
         selected_rows.plot(ax=a, subplots=True, rot=90)
         plt.savefig(out_data_folder / 'addvantage.png')
         plt.show()
-
-    # print(out_df.interpolate().ffill().bfill())
 
 
 def get_addvantage_session_id():
