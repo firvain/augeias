@@ -377,7 +377,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
     try:
         print(f"Working on {Fore.GREEN}ATMOS")
 
-        m7 = Sensors_Mongo.get_mongo_data('ff619c613b368b15e14649bd20db7b69c62010fd',
+        m7 = Sensors_Mongo.get_mongo_data('1ef55f2a354bd39cca6edb637aec2e0ea55bea09',
                                           ['air-temperature0-C', 'gust-windspeed0-m/s', 'precipitation0-mm',
                                            'relative-humidity0-%', 'solar-radiation0-W/m2', 'wind-direction0-Degrees',
                                            'windspeed0-m/s', 'atmospheric-pressure0-kPa', 'timestamp'],
