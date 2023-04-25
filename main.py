@@ -254,16 +254,16 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
     try:
         print(f"Working on {Fore.GREEN}Scan_chlori")
         m3 = Sensors_Mongo.get_mongo_data('218603913b6398d27b0b1612e7ee2e2ee3d036a1',
-                                          ['analogInput.2', 'temperatureSensor.1'],
+                                          ['analogInput.1', 'temperatureSensor.3'],
                                           past_hours=PAST_HOURS)
 
         if m3 is not None and isinstance(m3, DataFrame) and not m3.empty:
-            m3['analogInput.2'] = np.where((m3['analogInput.2'] < 0) | (m3['analogInput.2'] > 2.0),
-                                           np.nan, m3['analogInput.2'])
-            m3['temperatureSensor.1'] = np.where((m3['temperatureSensor.1'] < 5.0) | (m3['temperatureSensor.1'] > 45.0),
-                                                 np.nan, m3['temperatureSensor.1'])
+            m3['analogInput.1'] = np.where((m3['analogInput.1'] < 0) | (m3['analogInput.1'] > 2.0),
+                                           np.nan, m3['analogInput.1'])
+            m3['temperatureSensor.1'] = np.where((m3['temperatureSensor.3'] < 5.0) | (m3['temperatureSensor.3'] > 45.0),
+                                                 np.nan, m3['temperatureSensor.3'])
             m3_out = rename_pandas_columns(m3,
-                                           {'analogInput.2': "chlorine", 'temperatureSensor.1': 'temperatureSensor'})
+                                           {'analogInput.1': "chlorine", 'temperatureSensor.3': 'temperatureSensor'})
             m3_out = resample_dataset(m3_out)
             m3_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             m3_out.dropna(how='all', inplace=True)
@@ -327,20 +327,22 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
         print(f"Working on {Fore.GREEN}Proteus_infinite")
 
         m5 = Sensors_Mongo.get_mongo_data('59a85c7da55bf1bf6e784675c060a2e71ee2373a',
-                                          ['channel', 'sign', 'value'],
+                                          ['1', '2', '3', '4', '5', '6'],
                                           past_hours=PAST_HOURS)
         print(m5)
+
         if m5 is not None and isinstance(m5, DataFrame) and not m5.empty:
-            m5 = m5.replace('--------', np.nan)
-            m5['value'] = to_numeric(m5["value"])
-            m5['sign'] = to_numeric(m5["sign"] + str(1))
+            # convert columns to float
+            for col in m5.columns.tolist():
+                m5[col] = pd.to_numeric(m5[col])
+
             m5.dropna(inplace=True)
-            m5["value"].apply(lambda x: x * m5['sign'] if notnull(x) else x)
-            m5 = pivot_table(m5, values="value", index=['timestamp'], columns=['channel'])
-            m5 = m5[m5.columns.intersection(["timestamp", "01", '02', "03", "04", "05", "06"])]
+            # m5["value"].apply(lambda x: x * m5['sign'] if notnull(x) else x)
+            # m5 = pivot_table(m5, values="value", index=['timestamp'], columns=['channel'])
+
             m5 = rename_pandas_columns(m5,
-                                       {'01': "pH", '02': 'ORP', "03": "total_coli", "04": "BOD", "05": "COD",
-                                        "06": "NO3",
+                                       {'1': "pH", '2': 'ORP', "3": "total_coli", "4": "BOD", "5": "COD",
+                                        "6": "NO3",
                                         })
 
             m5['pH'] = np.where(
@@ -363,6 +365,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
             m5_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             m5_out.dropna(how='all', inplace=True)
             print(m5_out)
+
             if should_push:
                 response = push_to_aws(m5_out, "Proteus_Infinite")
                 print('push status code', response.status_code)
@@ -371,6 +374,7 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
 
             save_pandas_to_csv(m5_out, out_path="Data/Sensors", csv_name="Proteus_infinite.csv")
             save_pandas_to_json(m5_out, out_path="Data/Sensors", json_name="Proteus_infinite.json")
+
             if save_to_db:
                 save_df_to_database(df=m5_out, table_name="Proteus_infinite")
     except Exception as e:
@@ -493,7 +497,7 @@ if __name__ == '__main__':
     # get_sensor_data()
     # openweather_daily = get_openweather_daily(save_to_db=True)
     # get_accuweather_daily(save_to_db=True)
-    # get_sensor_data(save_to_db=True)
+    # get_sensor_data(save_to_db=True, should_push=False)
 
     my_schedule(get_sensor_data, get_openweather_daily, get_accuweather_daily, get_sensor_data_continuously)
 # my_schedule_test(get_sensor_data_continuously)
