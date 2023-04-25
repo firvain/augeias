@@ -76,93 +76,93 @@ def get_sensor_data_continuously(past_minutes: int = 15):
         print(e)
         pass
     # Proteus_infinite
-    try:
-        print(f"Working on {Fore.GREEN}Proteus_infinite")
-
-        m5 = Sensors_Mongo.get_mongo_datα_minutely('59a85c7da55bf1bf6e784675c060a2e71ee2373a',
-                                                   ['channel', 'sign', 'value'],
-                                                   past_minutes=past_minutes)
-        print(m5)
-        if m5 is not None and isinstance(m5, DataFrame) and not m5.empty:
-            m5 = m5.replace('--------', np.nan)
-            m5['value'] = to_numeric(m5["value"])
-            m5['sign'] = to_numeric(m5["sign"] + str(1))
-            m5.dropna(inplace=True)
-
-            m5["value"].apply(lambda x: x * m5['sign'] if notnull(x) else x)
-
-            m5 = pivot_table(m5, values="value", index=['timestamp'], columns=['channel'])
-            m5 = m5[m5.columns.intersection(["timestamp", "01", '02', "03", "04", "05", "06"])]
-            m5 = rename_pandas_columns(m5,
-                                       {'01': "pH", '02': 'ORP', "03": "total_coli", "04": "BOD", "05": "COD",
-                                        "06": "NO3",
-                                        })
-            # OUT OF BOUNDS
-            if 'ph' not in m5:
-                m5['pH'] = np.nan
-            m5['pH'] = np.where(
-                (m5['pH'] < 0.0) | (m5['pH'] > 14.0),
-                np.nan, m5['pH'])
-
-            if 'ORP' not in m5:
-                m5['ORP'] = np.nan
-            m5['ORP'] = np.where(
-                (m5['ORP'] < -999.0) | (m5['ORP'] > 999.0),
-                np.nan, m5['ORP'])
-            if 'BOD' not in m5:
-                m5['BOD'] = np.nan
-            m5['BOD'] = np.where(
-                (m5['BOD'] < 0.0) | (m5['BOD'] > 300.0),
-                np.nan, m5['BOD'])
-            if 'COD' not in m5:
-                m5['COD'] = np.nan
-            m5['COD'] = np.where(
-                (m5['COD'] < 0.0) | (m5['COD'] > 600.0),
-                np.nan, m5['COD'])
-            if 'NO3' not in m5:
-                m5['NO3'] = np.nan
-            m5['NO3'] = np.where(
-                (m5['NO3'] < 0.0) | (m5['NO3'] > 100.0),
-                np.nan, m5['NO3'])
-            if 'total_coli' not in m5:
-                m5['total_coli'] = np.nan
-            m5['total_coli'] = np.where(
-                (m5['total_coli'] < 1.0),
-                np.nan, m5['total_coli'])
-            m5.dropna(how='all', inplace=True)
-            # ALERTS!!!!
-            m5['total_coli_alert'] = np.nan
-            m5['total_coli_alert'] = np.where(np.isnan(m5['total_coli']), m5['total_coli'] <= 200,
-                                              m5['total_coli'] > 200)
-            m5['COD_alert'] = np.nan
-
-            m5['COD_alert'] = np.where(np.isnan(m5['COD']), 60 >= m5['COD'], 60 < m5['COD'])
-            m5['BOD_alert'] = np.nan
-            m5['BOD_alert'] = np.where(np.isnan(m5['BOD']), 20 >= m5['BOD'], 20 < m5['BOD'])
-            m5['pH_alert'] = np.nan
-
-            m5['pH_alert'] = np.where(np.isnan(m5['pH']), (m5['pH'] <= 8.5) & (m5['pH'] >= 6.5),
-                                      (m5['pH'] > 8.5) | (m5['pH'] < 6.5),
-                                      )
-            m5['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
-            m5.dropna(how='all', inplace=True)
-
-            save_pandas_to_csv(m5, out_path="Data/Sensors", csv_name="Proteus_infinite_alerts.csv")
-            save_pandas_to_json(m5, out_path="Data/Sensors", json_name="Proteus_infinite.json")
-            save_df_to_database(df=m5, table_name="Proteus_infinite_alerts")
-            # send alert to AWS
-            send_df = m5[['total_coli_alert', 'COD_alert', 'BOD_alert', 'pH_alert']].copy()
-            send_df.rename(columns={'COD_alert': 'cod_alert', 'BOD_alert': 'bod_alert'}, inplace=True)
-            send_df['sensor_name'] = 'proteus_infinite'
-            send_df['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
-            response = push_to_aws_last_row(send_df, "TotalColiAlert")
-            print('push status code', response.status_code)
-            response.raise_for_status()
-            print(response.content)
-
-    except Exception as e:
-        print(e)
-        pass
+    # try:
+    #     print(f"Working on {Fore.GREEN}Proteus_infinite")
+    #
+    #     m5 = Sensors_Mongo.get_mongo_datα_minutely('59a85c7da55bf1bf6e784675c060a2e71ee2373a',
+    #                                                ['channel', 'sign', 'value'],
+    #                                                past_minutes=past_minutes)
+    #     print(m5)
+    #     if m5 is not None and isinstance(m5, DataFrame) and not m5.empty:
+    #         m5 = m5.replace('--------', np.nan)
+    #         m5['value'] = to_numeric(m5["value"])
+    #         m5['sign'] = to_numeric(m5["sign"] + str(1))
+    #         m5.dropna(inplace=True)
+    #
+    #         m5["value"].apply(lambda x: x * m5['sign'] if notnull(x) else x)
+    #
+    #         m5 = pivot_table(m5, values="value", index=['timestamp'], columns=['channel'])
+    #         m5 = m5[m5.columns.intersection(["timestamp", "01", '02', "03", "04", "05", "06"])]
+    #         m5 = rename_pandas_columns(m5,
+    #                                    {'01': "pH", '02': 'ORP', "03": "total_coli", "04": "BOD", "05": "COD",
+    #                                     "06": "NO3",
+    #                                     })
+    #         # OUT OF BOUNDS
+    #         if 'ph' not in m5:
+    #             m5['pH'] = np.nan
+    #         m5['pH'] = np.where(
+    #             (m5['pH'] < 0.0) | (m5['pH'] > 14.0),
+    #             np.nan, m5['pH'])
+    #
+    #         if 'ORP' not in m5:
+    #             m5['ORP'] = np.nan
+    #         m5['ORP'] = np.where(
+    #             (m5['ORP'] < -999.0) | (m5['ORP'] > 999.0),
+    #             np.nan, m5['ORP'])
+    #         if 'BOD' not in m5:
+    #             m5['BOD'] = np.nan
+    #         m5['BOD'] = np.where(
+    #             (m5['BOD'] < 0.0) | (m5['BOD'] > 300.0),
+    #             np.nan, m5['BOD'])
+    #         if 'COD' not in m5:
+    #             m5['COD'] = np.nan
+    #         m5['COD'] = np.where(
+    #             (m5['COD'] < 0.0) | (m5['COD'] > 600.0),
+    #             np.nan, m5['COD'])
+    #         if 'NO3' not in m5:
+    #             m5['NO3'] = np.nan
+    #         m5['NO3'] = np.where(
+    #             (m5['NO3'] < 0.0) | (m5['NO3'] > 100.0),
+    #             np.nan, m5['NO3'])
+    #         if 'total_coli' not in m5:
+    #             m5['total_coli'] = np.nan
+    #         m5['total_coli'] = np.where(
+    #             (m5['total_coli'] < 1.0),
+    #             np.nan, m5['total_coli'])
+    #         m5.dropna(how='all', inplace=True)
+    #         # ALERTS!!!!
+    #         m5['total_coli_alert'] = np.nan
+    #         m5['total_coli_alert'] = np.where(np.isnan(m5['total_coli']), m5['total_coli'] <= 200,
+    #                                           m5['total_coli'] > 200)
+    #         m5['COD_alert'] = np.nan
+    #
+    #         m5['COD_alert'] = np.where(np.isnan(m5['COD']), 60 >= m5['COD'], 60 < m5['COD'])
+    #         m5['BOD_alert'] = np.nan
+    #         m5['BOD_alert'] = np.where(np.isnan(m5['BOD']), 20 >= m5['BOD'], 20 < m5['BOD'])
+    #         m5['pH_alert'] = np.nan
+    #
+    #         m5['pH_alert'] = np.where(np.isnan(m5['pH']), (m5['pH'] <= 8.5) & (m5['pH'] >= 6.5),
+    #                                   (m5['pH'] > 8.5) | (m5['pH'] < 6.5),
+    #                                   )
+    #         m5['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
+    #         m5.dropna(how='all', inplace=True)
+    #
+    #         save_pandas_to_csv(m5, out_path="Data/Sensors", csv_name="Proteus_infinite_alerts.csv")
+    #         save_pandas_to_json(m5, out_path="Data/Sensors", json_name="Proteus_infinite.json")
+    #         save_df_to_database(df=m5, table_name="Proteus_infinite_alerts")
+    #         # send alert to AWS
+    #         send_df = m5[['total_coli_alert', 'COD_alert', 'BOD_alert', 'pH_alert']].copy()
+    #         send_df.rename(columns={'COD_alert': 'cod_alert', 'BOD_alert': 'bod_alert'}, inplace=True)
+    #         send_df['sensor_name'] = 'proteus_infinite'
+    #         send_df['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
+    #         response = push_to_aws_last_row(send_df, "TotalColiAlert")
+    #         print('push status code', response.status_code)
+    #         response.raise_for_status()
+    #         print(response.content)
+    #
+    # except Exception as e:
+    #     print(e)
+    #     pass
 
 
 def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
@@ -250,16 +250,16 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
     try:
         print(f"Working on {Fore.GREEN}Scan_chlori")
         m3 = Sensors_Mongo.get_mongo_data('218603913b6398d27b0b1612e7ee2e2ee3d036a1',
-                                          ['analogInput.2', 'temperatureSensor.1'],
+                                          ['analogInput.1', 'temperatureSensor.3'],
                                           past_hours=PAST_HOURS)
 
         if m3 is not None and isinstance(m3, DataFrame) and not m3.empty:
-            m3['analogInput.2'] = np.where((m3['analogInput.2'] < 0) | (m3['analogInput.2'] > 2.0),
-                                           np.nan, m3['analogInput.2'])
-            m3['temperatureSensor.1'] = np.where((m3['temperatureSensor.1'] < 5.0) | (m3['temperatureSensor.1'] > 45.0),
-                                                 np.nan, m3['temperatureSensor.1'])
+            m3['analogInput.1'] = np.where((m3['analogInput.1'] < 0) | (m3['analogInput.1'] > 2.0),
+                                           np.nan, m3['analogInput.1'])
+            m3['temperatureSensor.1'] = np.where((m3['temperatureSensor.3'] < 5.0) | (m3['temperatureSensor.3'] > 45.0),
+                                                 np.nan, m3['temperatureSensor.3'])
             m3_out = rename_pandas_columns(m3,
-                                           {'analogInput.2': "chlorine", 'temperatureSensor.1': 'temperatureSensor'})
+                                           {'analogInput.1': "chlorine", 'temperatureSensor.3': 'temperatureSensor'})
             m3_out = resample_dataset(m3_out)
             m3_out['application_group'] = '68ead743e6d6e531352fe86280918678761982bc'
             m3_out.dropna(how='all', inplace=True)
@@ -323,20 +323,18 @@ def get_sensor_data(save_to_db: bool = False, should_push: bool = True):
         print(f"Working on {Fore.GREEN}Proteus_infinite")
 
         m5 = Sensors_Mongo.get_mongo_data('59a85c7da55bf1bf6e784675c060a2e71ee2373a',
-                                          ['channel', 'sign', 'value'],
+                                          ['1', '2', '3', '4', '5', '6'],
                                           past_hours=PAST_HOURS)
         print(m5)
         if m5 is not None and isinstance(m5, DataFrame) and not m5.empty:
-            m5 = m5.replace('--------', np.nan)
-            m5['value'] = to_numeric(m5["value"])
-            m5['sign'] = to_numeric(m5["sign"] + str(1))
+            # convert columns to float
+            for col in m5.columns.tolist():
+                m5[col] = to_numeric(m5[col])
             m5.dropna(inplace=True)
-            m5["value"].apply(lambda x: x * m5['sign'] if notnull(x) else x)
-            m5 = pivot_table(m5, values="value", index=['timestamp'], columns=['channel'])
-            m5 = m5[m5.columns.intersection(["timestamp", "01", '02', "03", "04", "05", "06"])]
+
             m5 = rename_pandas_columns(m5,
-                                       {'01': "pH", '02': 'ORP', "03": "total_coli", "04": "BOD", "05": "COD",
-                                        "06": "NO3",
+                                       {'1': "pH", '2': 'ORP', "3": "total_coli", "4": "BOD", "5": "COD",
+                                        "6": "NO3",
                                         })
 
             m5['pH'] = np.where(
